@@ -55,6 +55,13 @@ Read cold, mid-task. Every command below is real for this repository.
   change/blur so typing a year keeps its focus. Aggregates use BigInt; ledger money remains
   whole minor-unit integers. The native fixture has November income 200000, spending 1500,
   Food budget 2000 and 500 left after the rule-assigned imports.
+- Native export uses `TALLY_TEST_EXPORT_PATH` only in isolated launches, bounded to
+  `.cache`; the writer protects the live ledger/pending file and flushes a temporary CSV
+  before replacement. The suite filters, exports, launches an empty ledger and imports
+  the actual file with the same date/payee/amount/category/note.
+- The final native journey undoes import/delete/merge once. File-failure integration
+  tests keep the undo slot after a denied write. Filters use signed, inclusive ranges;
+  export includes every matching page, not only the 50 DOM rows currently visible.
 
 - Real shell: `npm run test:e2e` launches `out/` through Playwright and
   checks the badge, transaction persistence and the console; add journeys

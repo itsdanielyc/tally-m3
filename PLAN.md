@@ -13,6 +13,10 @@ The fixed scope and ordering come from SLICES.md. Solo ownership for every slice
 | 6 | Release readiness | 0.1.0 versions agree; changelog and unsigned notes; release gate proven to reject unproven commit; fresh CI and installer round trips green for candidate commit; ledger current; no tag/release | L0-L7 | solo | open |
 
 ## Rulings
+- Ruling: undo retains only the most recent transaction/category/rule delete, category merge or import; any intervening changed write clears it, while reads/previews/exports/failed writes/no-ops preserve it — implement immediate one-step undo without reverting unrelated work — history is not retained across process restarts.
+- Ruling: transaction pages contain 50 rows but export includes the entire matching filter set — bound DOM work as the ledger grows and satisfy filtered-set export — the page footer states this explicitly.
+- Ruling: exported categories/notes round-trip through optional CSV mappings, reserving new categories in the receipt and creating them with the rows on confirmation — preserve transaction fields in an empty ledger — internal IDs are regenerated.
+- Ruling: CSV export is atomic, refuses the live ledger/pending paths and is bounded to the import limit — prevent ledger overwrite and keep every produced CSV re-importable — large exports require narrower filters.
 - Ruling: monthly income/spending remain gross sign totals; category net totals include every signed row and credits/refunds offset budget use — monthly totals must reconcile to the ledger to the cent — users wanting gross-only category budgets would need a later policy change.
 - Ruling: aggregates use BigInt while individual persisted amounts/budgets remain safe integer minor units — prevent overflow and cent rounding in large mixed totals — derived aggregate values are never serialized into the ledger.
 - Ruling: budgets are independent per category/month, unset differs from explicit zero, with no automatic carryover — fixed scope asks for monthly budgets — recurring templates are not built.

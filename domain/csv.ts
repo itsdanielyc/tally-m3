@@ -1,7 +1,7 @@
-import type { CsvMapping, CsvRecord, DateOrder, ImportPreview, Ledger, TransactionDraft } from "../contracts/ledger";
+import type { Category, CsvMapping, CsvRecord, DateOrder, ImportPreview, Ledger, TransactionDraft } from "../contracts/ledger";
 import { inspectCsv } from "./csv-columns";
 import { parseMinorUnits, isISODate } from "./money";
-import { assertRecord, validateTransaction } from "./validation";
+import { assertRecord, requiredText, validateTransaction } from "./validation";
 export { inspectCsv, suggestMapping } from "./csv-columns";
 
 const TWO_DIGIT_YEAR_PIVOT = 70;
@@ -64,13 +64,15 @@ function readAmount(record: CsvRecord, mapping: CsvMapping): number {
   return credit - debit;
 }
 
-/** O(t+n) expected time/space. Compare against stored rows, preserving source multiplicity. */
-export function prepareImport(source: string, mapping: CsvMapping, ledger: Ledger): Omit<ImportPreview, "token"> {
+/** O(t+n+c) expected time/space. Stored duplicate lookup preserves source multiplicity. */
+export function prepareImport(source: string, mapping: CsvMapping, ledger: Ledger, createId: () => string = () => crypto.randomUUID()): Omit<ImportPreview, "token"> {
   const table = inspectCsv(source);
   validateMapping(mapping, table.headers.length);
   const existingKeys = new Set(ledger.transactions.map(transactionFingerprint));
   const categoryIds = new Set(ledger.categories.map((category) => category.id));
   const accepted: TransactionDraft[] = [];
+  const newCategories: Category[] = [];
+  const categoryNames = new Map(ledger.categories.map((category) => [category.name.normalize("NFC").toLowerCase(), category.id]));
   const rejected: ImportPreview["rejected"] = [];
   let duplicates = 0;
   for (const record of table.rows) {
@@ -79,8 +81,17 @@ export function prepareImport(source: string, mapping: CsvMapping, ledger: Ledge
       if (record.fields.length !== table.headers.length) throw new Error(`Expected ${table.headers.length} columns; found ${record.fields.length}.`);
       const transaction = validateTransaction({ date: parseCsvDate(field(record, mapping.date), mapping.dateOrder), payee: field(record, mapping.payee), amount: readAmount(record, mapping), categoryId: null, note: field(record, mapping.note) }, categoryIds);
       if (existingKeys.has(transactionFingerprint(transaction))) { duplicates += 1; continue; }
+      const categoryText = field(record, mapping.category).trim();
+      if (categoryText) {
+        const name = requiredText(categoryText, "Category name");
+        const key = name.normalize("NFC").toLowerCase();
+        if (key === "uncategorised") throw new Error("Uncategorised is reserved; leave that category cell empty.");
+        let categoryId = categoryNames.get(key);
+        if (!categoryId) { categoryId = createId(); categoryNames.set(key, categoryId); newCategories.push({ id: categoryId, name }); }
+        transaction.categoryId = categoryId;
+      }
       accepted.push(transaction);
     } catch (error) { rejected.push({ line: record.line, reason: error instanceof Error ? error.message : String(error) }); }
   }
-  return { accepted, rejected, duplicates, totalRows: table.rows.length, newCategories: [] };
+  return { accepted, rejected, duplicates, totalRows: table.rows.length, newCategories };
 }

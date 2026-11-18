@@ -12,6 +12,7 @@ const HEADER_ALIASES = {
   debit: ["debit", "debits", "withdrawal", "withdrawals", "moneyout", "paidout"],
   credit: ["credit", "credits", "deposit", "deposits", "moneyin", "paidin"],
   note: ["note", "notes", "memo"],
+  category: ["category"],
 } as const;
 
 function headerKey(value: string): string { return value.trim().toLowerCase().replace(/[^a-z]/g, ""); }
@@ -67,5 +68,5 @@ export function suggestMapping(table: CsvTable): CsvMapping {
   const amount = signed ?? (debit === null && credit === null && table.headers.length > 2 ? 2 : null);
   const sample = table.rows.find((record) => !record.error);
   const sampleAmount = sample?.fields[amount ?? debit ?? credit ?? 0] ?? "";
-  return { date, payee, amount, debit: amount === null ? debit : null, credit: amount === null ? credit : null, note: columnIndex(table.headers, "note"), dateOrder: /^\d{4}-/.test(sample?.fields[date] ?? "") ? "YMD" : "DMY", decimalSeparator: sampleAmount.lastIndexOf(",") > sampleAmount.lastIndexOf(".") ? "," : "." };
+  return { date, payee, amount, debit: amount === null ? debit : null, credit: amount === null ? credit : null, note: columnIndex(table.headers, "note"), category: columnIndex(table.headers, "category"), dateOrder: /^\d{4}-/.test(sample?.fields[date] ?? "") ? "YMD" : "DMY", decimalSeparator: sampleAmount.lastIndexOf(",") > sampleAmount.lastIndexOf(".") ? "," : "." };
 }

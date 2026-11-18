@@ -18,14 +18,16 @@ Contract changes land in a separate small PR before their feature implementation
 ## State and data
 The main process owns a single ledger JSON document in application data: schema version,
 currency, transactions, categories, rules and monthly budgets. Amounts and aggregates are safe integers.
-Commands validate all input at the trust boundary. Mutations clone and validate a candidate,
 Monthly totals are derived with BigInt; persisted transactions and budgets stay bounded integers.
 Credits offset category budget use. Month navigation uses calendar strings, without timezone conversion.
+Commands validate all input at the trust boundary. Mutations clone and validate a candidate,
 flush a temporary file, atomically rename it, then publish the candidate to memory.
 Failed writes leave both the previous file and in-memory state intact. Startup never silently
 replaces corrupt or unsupported data. Version migration is explicit and fixture-tested.
 One in-memory snapshot supports one immediate undo for delete, category merge and import;
 any subsequent mutation replaces/clears it. Undo itself is persisted atomically.
+No-op writes preserve the undo slot. A failed write publishes neither data nor undo changes.
+Filtering scans the detached snapshot; only a 50-row page enters the DOM, while export uses all matches.
 Renderer state holds only the current snapshot, active view, filters and import preview.
 CSV duplicates use a Set keyed by date, signed amount and normalized payee; imports commit once.
 

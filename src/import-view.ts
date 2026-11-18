@@ -13,7 +13,7 @@ export function renderImportDialog(table: CsvTable, mapping: CsvMapping): string
     <div id="csv-signed" ${mapping.amount === null ? "hidden" : ""}>${columnSelect("csv-amount", "Amount column", table.headers, mapping.amount, true)}</div>
     <div id="csv-split" class="mapping-grid" ${mapping.amount !== null ? "hidden" : ""}>${columnSelect("csv-debit", "Debit column", table.headers, mapping.debit, true)}${columnSelect("csv-credit", "Credit column", table.headers, mapping.credit, true)}</div>
     <div class="mapping-grid"><div><label for="csv-decimal">Decimal separator</label><select id="csv-decimal"><option value="." ${mapping.decimalSeparator === "." ? "selected" : ""}>Decimal point (1,234.56)</option><option value="," ${mapping.decimalSeparator === "," ? "selected" : ""}>Decimal comma (1.234,56)</option></select></div>${columnSelect("csv-note", "Note column (optional)", table.headers, mapping.note ?? null, true)}</div>
-    <button type="submit" id="csv-preview-button" class="secondary">Preview import</button></form>
+    ${columnSelect("csv-category", "Category column (optional)", table.headers, mapping.category ?? null, true)}<button type="submit" id="csv-preview-button" class="secondary">Preview import</button></form>
     <section id="csv-preview" aria-label="Import preview" aria-live="polite"><p>Preparing preview…</p></section><p id="csv-error" class="error" role="alert" hidden></p></div>
     <div class="dialog-actions"><button type="button" id="csv-cancel">Cancel import</button><button type="button" class="primary" id="csv-confirm" disabled>Confirm import</button></div>`;
 }

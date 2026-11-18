@@ -19,6 +19,16 @@ body.tally-app {
 .tally-app *, .tally-app *::before, .tally-app *::after { box-sizing: border-box; }
 .tally-app [hidden] { display: none !important; }
 .tally-app .header-actions { display: flex; gap: 9px; align-items: center; }
+.tally-app .feedback-row { display: flex; justify-content: space-between; align-items: start; gap: 16px; margin-top: 18px; }
+.tally-app .feedback-row .feedback { margin-top: 8px; }
+.tally-app .filter-panel { padding: 17px 20px; background: #f0f2e9; border: 1px solid var(--line); border-radius: 8px; margin-bottom: 18px; }
+.tally-app .filter-primary { display: grid; grid-template-columns: minmax(150px, 1fr) 160px auto auto; gap: 10px; align-items: end; }
+.tally-app .filter-panel label { margin-top: 0; font-size: 10px; }
+.tally-app .filter-panel details { margin-top: 13px; }
+.tally-app .filter-panel summary { font-size: 11px; color: var(--muted); cursor: pointer; }
+.tally-app .filter-bounds { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 12px 0; }
+.tally-app .pager { display: flex; align-items: center; justify-content: space-between; gap: 10px; border-top: 1px solid var(--line); padding: 10px 18px; font-size: 11px; color: var(--muted); }
+.tally-app .pager button { font-size: 10px; padding: 5px 9px; margin-left: 7px; }
 .tally-app .management-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; margin-bottom: 20px; }
 .tally-app .management-panel { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 22px; min-width: 0; }
 .tally-app .management-panel table { margin: 18px 0; }
@@ -127,6 +137,8 @@ body.tally-app {
   .tally-app .import-scroll { display: block; }
   .tally-app .management-grid { grid-template-columns: 1fr; }
   .tally-app .summary-grid { grid-template-columns: 1fr; }
+  .tally-app .filter-primary { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .tally-app .filter-bounds { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .tally-app .merge-form { grid-template-columns: 1fr; }
   .tally-app #csv-preview { border-top: 1px solid var(--line); margin-top: 22px; padding-top: 18px; }
 }

@@ -2,14 +2,16 @@ import { SUPPORTED_CURRENCIES, type LedgerSnapshot, type Transaction } from "../
 import { formatMinorUnits } from "../domain/money";
 import { renderCategories } from "./categories-view";
 import { renderSummary } from "./summary-view";
+import { filterTransactions, paginateTransactions } from "../domain/find";
+import { renderFindControls, renderPager, TRANSACTION_PAGE_SIZE, type TransactionViewState } from "./find-view";
 import { escapeHtml } from "./html";
 export { escapeHtml } from "./html";
 
 export type ActiveView = "transactions" | "settings" | "categories" | "summary";
 
 /** Render a persistent navigation shell around a single active, semantic main surface. */
-export function renderApplication(snapshot: LedgerSnapshot, activeView: ActiveView, backendKind: string, error: string, month: string): string {
-  const content = activeView === "settings" ? renderSettings(snapshot) : activeView === "categories" ? renderCategories(snapshot) : activeView === "summary" ? renderSummary(snapshot, month) : renderTransactions(snapshot);
+export function renderApplication(snapshot: LedgerSnapshot, activeView: ActiveView, backendKind: string, error: string, month: string, transactionView: TransactionViewState): string {
+  const content = activeView === "settings" ? renderSettings(snapshot) : activeView === "categories" ? renderCategories(snapshot) : activeView === "summary" ? renderSummary(snapshot, month) : renderTransactions(snapshot, transactionView);
   return `<aside class="sidebar" data-geo="sidebar">
     <a class="wordmark" href="#" aria-label="Tally home"><span class="brand-mark" aria-hidden="true">t</span>Tally<span class="version">0.1</span></a>
     <p class="nav-label">YOUR MONEY, IN VIEW</p>
@@ -18,7 +20,7 @@ export function renderApplication(snapshot: LedgerSnapshot, activeView: ActiveVi
   </aside>
   <main class="workspace" data-geo="workspace">${content}
     <p class="feedback error" role="alert" ${error ? "" : "hidden"}>${escapeHtml(error)}</p>
-    <p class="feedback" role="status">${escapeHtml(snapshot.notice)}</p>
+    <div class="feedback-row"><p class="feedback" role="status">${escapeHtml(snapshot.notice)}</p><button type="button" data-action="undo" ${snapshot.undoLabel ? "" : "disabled"}>${snapshot.undoLabel ? `Undo ${escapeHtml(snapshot.undoLabel)}` : "Undo"}</button></div>
   </main>${renderTransactionDialog(snapshot)}<input id="csv-file-input" data-testid="csv-file-input" type="file" accept=".csv,text/csv" hidden>`;
 }
 
@@ -27,15 +29,17 @@ function navigationButton(view: ActiveView, label: string, activeView: ActiveVie
 }
 
 /** O(t+c) time and space: category names are indexed once for the visible transaction list. */
-function renderTransactions(snapshot: LedgerSnapshot): string {
+function renderTransactions(snapshot: LedgerSnapshot, view: TransactionViewState): string {
   const { ledger } = snapshot;
   const categories = new Map(ledger.categories.map((category) => [category.id, category.name]));
-  const rows = ledger.transactions.map((transaction) => renderTransactionRow(transaction, ledger.currency, categories)).join("");
-  return `<header class="page-header" data-geo="page-header"><div><p class="eyebrow">THE EVERYDAY LEDGER</p><h1>Transactions</h1><p class="muted">A little clarity for every day.</p></div><div class="header-actions"><button data-action="import" type="button">Import CSV</button><button class="primary" data-action="add" type="button">Add transaction</button></div></header>
-    <section class="ledger-panel" data-geo="ledger-panel" aria-label="Transaction ledger">
-      <div class="panel-heading"><h2>All transactions <span class="count">${ledger.transactions.length}</span></h2><span class="currency-label">Amounts in ${escapeHtml(ledger.currency)}</span></div>
-      ${rows ? `<div class="table-scroll"><table><thead><tr><th scope="col">Date</th><th scope="col">Payee / note</th><th scope="col">Category</th><th scope="col" class="amount">Amount</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead><tbody>${rows}</tbody></table></div>` : `<div class="empty-state" data-geo="empty-state"><div class="empty-icon" aria-hidden="true">≡</div><h3>Your ledger is empty</h3><p>Add your first transaction to start keeping track.</p><button type="button" class="secondary" data-action="add">Add your first transaction</button></div>`}
-      <footer class="panel-footer">One ledger. A clearer picture.<span>Everything stays on your computer.</span></footer>
+  const matches = filterTransactions(ledger.transactions, view.filters);
+  const page = paginateTransactions(matches, view.page, TRANSACTION_PAGE_SIZE);
+  const rows = page.rows.map((transaction) => renderTransactionRow(transaction, ledger.currency, categories)).join("");
+  return `<header class="page-header" data-geo="page-header"><div><p class="eyebrow">THE EVERYDAY LEDGER</p><h1>Transactions</h1><p class="muted">A little clarity for every day.</p></div><div class="header-actions"><button data-action="export" type="button" ${matches.length ? "" : "disabled"}>Export CSV</button><button data-action="import" type="button">Import CSV</button><button class="primary" data-action="add" type="button">Add transaction</button></div></header>
+    ${renderFindControls(view.filters, ledger.categories)}<section class="ledger-panel" data-geo="ledger-panel" aria-label="Transaction ledger">
+      <div class="panel-heading"><h2>Transactions <span class="count">${matches.length}</span></h2><span class="currency-label">Amounts in ${escapeHtml(ledger.currency)}</span></div>
+      ${rows ? `<div class="table-scroll"><table><thead><tr><th scope="col">Date</th><th scope="col">Payee / note</th><th scope="col">Category</th><th scope="col" class="amount">Amount</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead><tbody>${rows}</tbody></table></div>` : `<div class="empty-state" data-geo="empty-state"><div class="empty-icon" aria-hidden="true">≡</div><h3>${ledger.transactions.length ? "No matching transactions" : "Your ledger is empty"}</h3><p>${ledger.transactions.length ? "Change or clear the filters to see more." : "Add your first transaction to start keeping track."}</p><button type="button" class="secondary" data-action="add">Add your first transaction</button></div>`}
+      ${renderPager(page)}<footer class="panel-footer">Export includes all matching pages.<span>Everything stays on your computer.</span></footer>
     </section>`;
 }
 

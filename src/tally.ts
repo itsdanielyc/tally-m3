@@ -8,6 +8,9 @@ import { bindCategoryEvents } from "./category-controller";
 import { disableControls } from "./controls";
 import { bindSummaryEvents } from "./summary-controller";
 import { validateMonth } from "../domain/summary";
+import { defaultFilters, filterTransactions, validateFilters, type TransactionFilters } from "../domain/find";
+import { exportTransactions } from "../domain/export";
+import { bindFindEvents } from "./find-controller";
 
 let snapshot: LedgerSnapshot;
 let activeView: ActiveView = "transactions";
@@ -16,6 +19,8 @@ let busy = false;
 let errorMessage = "";
 const initialDate = new Date();
 let selectedMonth = `${initialDate.getFullYear()}-${String(initialDate.getMonth() + 1).padStart(2, "0")}`;
+let filters = defaultFilters();
+let currentPage = 0;
 
 /** Require a known view element; a broken template fails at its source rather than later. */
 function element<T extends HTMLElement>(id: string): T {
@@ -25,10 +30,12 @@ function element<T extends HTMLElement>(id: string): T {
 }
 
 function render(): void {
+  if (filters.categoryId !== undefined && filters.categoryId !== null && !snapshot.ledger.categories.some((category) => category.id === filters.categoryId)) filters = { ...filters, categoryId: undefined };
   document.body.className = "tally-app";
-  document.body.innerHTML = renderApplication(snapshot, activeView, ledgerBackend.kind, errorMessage, selectedMonth);
+  document.body.innerHTML = renderApplication(snapshot, activeView, ledgerBackend.kind, errorMessage, selectedMonth, { filters, page: currentPage });
   bindCategoryEvents(snapshot, execute);
   bindSummaryEvents(selectedMonth, changeMonth, execute, reportOperationError);
+  bindFindEvents(applyFilters, (page) => { currentPage = page; render(); }, reportOperationError);
   document.getElementById("transaction-form")?.addEventListener("submit", (event) => { event.preventDefault(); void saveTransaction(); });
   document.getElementById("settings-form")?.addEventListener("submit", (event) => {
     event.preventDefault(); void execute({ type: "setCurrency", currency: element<HTMLSelectElement>("currency").value });
@@ -42,7 +49,7 @@ function render(): void {
 }
 
 function showImport(source: string): void {
-  try { openImportDialog(source, snapshot, ledgerBackend, (next) => { snapshot = next; activeView = "transactions"; errorMessage = ""; render(); }); }
+  try { openImportDialog(source, snapshot, ledgerBackend, (next) => { snapshot = next; activeView = "transactions"; filters = defaultFilters(); currentPage = 0; errorMessage = ""; render(); }); }
   catch (error) { reportOperationError(error); }
 }
 
@@ -56,6 +63,26 @@ function reportOperationError(error: unknown): void {
 function changeMonth(month: string): void {
   try { selectedMonth = validateMonth(month); errorMessage = ""; render(); }
   catch (error) { reportOperationError(error); }
+}
+
+function applyFilters(next: TransactionFilters): void {
+  try { validateFilters(next); filters = next; currentPage = 0; errorMessage = ""; render(); }
+  catch (error) { reportOperationError(error); }
+}
+
+async function exportShownTransactions(): Promise<void> {
+  if (busy) return;
+  const main = document.querySelector("main");
+  const restore = main ? disableControls(main) : () => {};
+  busy = true;
+  try {
+    const shown = filterTransactions(snapshot.ledger.transactions, filters);
+    if (!shown.length) return;
+    const saved = await ledgerBackend.exportCsv(exportTransactions(shown, snapshot.ledger.categories));
+    snapshot.notice = saved ? `Exported ${shown.length} transaction${shown.length === 1 ? "" : "s"} to CSV.` : "Export cancelled.";
+    errorMessage = ""; render();
+  } catch (error) { reportOperationError(error); }
+  finally { busy = false; restore(); }
 }
 
 async function chooseImportFile(): Promise<void> {
@@ -113,7 +140,7 @@ async function saveTransaction(): Promise<void> {
     restoreForm = disableControls(element("transaction-form"));
     busy = true; submit.disabled = true;
     snapshot = await ledgerBackend.execute({ type: "saveTransaction", transaction, id: editingTransactionId });
-    errorMessage = ""; render();
+    filters = defaultFilters(); currentPage = 0; errorMessage = ""; render();
     document.querySelector<HTMLButtonElement>('[data-action="add"]')?.focus();
   } catch (error) { alert.textContent = describeError(error); alert.hidden = false; }
   finally { busy = false; restoreForm?.(); if (submit.isConnected) submit.disabled = false; }
@@ -129,6 +156,9 @@ document.body.addEventListener("click", (event) => {
     case "edit": openTransaction(target.dataset.id); break;
     case "delete": void execute({ type: "deleteTransaction", id: target.dataset.id! }); break;
     case "import": void chooseImportFile(); break;
+    case "export": void exportShownTransactions(); break;
+    case "undo": void execute({ type: "undo" }); break;
+    case "clear-filters": filters = defaultFilters(); currentPage = 0; errorMessage = ""; render(); break;
     case "cancel-transaction": element<HTMLDialogElement>("transaction-dialog").close(); break;
   }
 });
