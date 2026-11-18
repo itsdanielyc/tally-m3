@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-15]
     env:
       # No certificate lookup in the keychain, so macOS builds stay unsigned
       # (ad hoc) and electron-builder never tries to notarize.
@@ -43,6 +43,9 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y xvfb libnss3 libatk-bridge2.0-0t64 libgtk-3-0t64 libgbm1 libasound2t64 libfuse2t64
+      - name: Require the Tier 1 macOS architecture
+        if: runner.os == 'macOS'
+        run: node -e "if(process.arch!=='arm64')throw Error('Tier 1 requires macOS arm64')"
       - run: npm ci
       - name: Build and package (nsis | dmg | deb + AppImage)
         run: npm run package
