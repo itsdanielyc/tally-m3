@@ -1,20 +1,18 @@
 import { SUPPORTED_CURRENCIES, type LedgerSnapshot, type Transaction } from "../contracts/ledger";
 import { formatMinorUnits } from "../domain/money";
+import { renderCategories } from "./categories-view";
+import { escapeHtml } from "./html";
+export { escapeHtml } from "./html";
 
-export type ActiveView = "transactions" | "settings";
-
-/** Escape every value inserted into HTML, including payees imported from external files. */
-export function escapeHtml(value: string): string {
-  return value.replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]!);
-}
+export type ActiveView = "transactions" | "settings" | "categories";
 
 /** Render a persistent navigation shell around a single active, semantic main surface. */
 export function renderApplication(snapshot: LedgerSnapshot, activeView: ActiveView, backendKind: string, error: string): string {
-  const content = activeView === "settings" ? renderSettings(snapshot) : renderTransactions(snapshot);
+  const content = activeView === "settings" ? renderSettings(snapshot) : activeView === "categories" ? renderCategories(snapshot) : renderTransactions(snapshot);
   return `<aside class="sidebar" data-geo="sidebar">
     <a class="wordmark" href="#" aria-label="Tally home"><span class="brand-mark" aria-hidden="true">t</span>Tally<span class="version">0.1</span></a>
     <p class="nav-label">YOUR MONEY, IN VIEW</p>
-    <nav aria-label="Main navigation">${navigationButton("transactions", "Transactions", activeView)}${navigationButton("settings", "Settings", activeView)}</nav>
+    <nav aria-label="Main navigation">${navigationButton("transactions", "Transactions", activeView)}${navigationButton("categories", "Categories", activeView)}${navigationButton("settings", "Settings", activeView)}</nav>
     <div class="sidebar-foot"><span class="local-dot" aria-hidden="true"></span> Stored on this device<br><small data-testid="backend-badge">${backendKind}</small></div>
   </aside>
   <main class="workspace" data-geo="workspace">${content}

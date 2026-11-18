@@ -24,7 +24,7 @@ and installers on main. No Tier 2 or Tier 3 platforms are configured.
 | Filter/export/reimport and one-step undo | L1/L2/L3 + L4 | L6 native export/reimport |
 | Install launch uninstall | L7 OS scripts | L7 independent packaged processes |
 
-Visual tier 1 is a shared ARIA snapshot; tier 2 uses 8 px geometry tolerance;
+Visual tier 1 is a shared body ARIA snapshot including navigation; tier 2 uses 8 px geometry tolerance;
 tier 3 uses per-OS chromium PNGs with 0.002 pixel ratio tolerance.
 Only the hosted `snapshots` workflow creates PNG baselines, reviewed before merge.
 Real-shell screenshots are reviewed from every platform for each UI slice.

@@ -4,6 +4,8 @@ import { renderApplication, type ActiveView } from "./view";
 import { formatMinorUnits, parseMinorUnits } from "../domain/money";
 import type { LedgerCommand, LedgerSnapshot } from "../contracts/ledger";
 import { openImportDialog } from "./import-dialog";
+import { bindCategoryEvents } from "./category-controller";
+import { disableControls } from "./controls";
 
 let snapshot: LedgerSnapshot;
 let activeView: ActiveView = "transactions";
@@ -21,6 +23,7 @@ function element<T extends HTMLElement>(id: string): T {
 function render(): void {
   document.body.className = "tally-app";
   document.body.innerHTML = renderApplication(snapshot, activeView, ledgerBackend.kind, errorMessage);
+  bindCategoryEvents(snapshot, execute);
   document.getElementById("transaction-form")?.addEventListener("submit", (event) => { event.preventDefault(); void saveTransaction(); });
   document.getElementById("settings-form")?.addEventListener("submit", (event) => {
     event.preventDefault(); void execute({ type: "setCurrency", currency: element<HTMLSelectElement>("currency").value });
@@ -53,9 +56,17 @@ async function execute(command: LedgerCommand): Promise<boolean> {
   if (busy) return false;
   busy = true;
   errorMessage = "";
+  const main = document.querySelector("main");
+  const restoreControls = main ? disableControls(main) : () => {};
   try { snapshot = await ledgerBackend.execute(command); render(); return true; }
-  catch (error) { errorMessage = describeError(error); render(); return false; }
-  finally { busy = false; }
+  catch (error) {
+    errorMessage = describeError(error);
+    const alert = document.querySelector<HTMLElement>('main [role="alert"]');
+    if (alert) { alert.textContent = errorMessage; alert.hidden = false; }
+    else render();
+    return false;
+  }
+  finally { busy = false; restoreControls(); }
 }
 
 function openTransaction(id?: string): void {
@@ -78,6 +89,7 @@ async function saveTransaction(): Promise<void> {
   if (busy) return;
   const alert = element("transaction-error");
   const submit = document.querySelector<HTMLButtonElement>("#transaction-form button[type=submit]")!;
+  let restoreForm: (() => void) | undefined;
   try {
     const transaction = {
       date: element<HTMLInputElement>("transaction-date").value,
@@ -86,12 +98,13 @@ async function saveTransaction(): Promise<void> {
       categoryId: element<HTMLSelectElement>("transaction-category").value || null,
       note: element<HTMLTextAreaElement>("transaction-note").value,
     };
+    restoreForm = disableControls(element("transaction-form"));
     busy = true; submit.disabled = true;
     snapshot = await ledgerBackend.execute({ type: "saveTransaction", transaction, id: editingTransactionId });
     errorMessage = ""; render();
     document.querySelector<HTMLButtonElement>('[data-action="add"]')?.focus();
   } catch (error) { alert.textContent = describeError(error); alert.hidden = false; }
-  finally { busy = false; if (submit.isConnected) submit.disabled = false; }
+  finally { busy = false; restoreForm?.(); if (submit.isConnected) submit.disabled = false; }
 }
 
 document.body.addEventListener("click", (event) => {

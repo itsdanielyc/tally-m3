@@ -54,10 +54,14 @@ jobs:
         env:
           CI: "1"
         run: npm run test:ui:update
+      - name: Stage only this runner's snapshots
+        env:
+          SNAPSHOT_SHARED: ${{ matrix.os == fromJSON(inputs.runners)[0] }}
+        run: node scripts/collect-snapshots.mts tests/ui/__snapshots__ artifacts/snapshot-capture
       - uses: actions/upload-artifact@v7
         with:
           name: snapshots-${{ matrix.os }}
-          path: tests/ui/__snapshots__
+          path: artifacts/snapshot-capture
           retention-days: 3
 
   propose:

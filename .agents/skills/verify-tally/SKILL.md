@@ -45,6 +45,11 @@ Read cold, mid-task. Every command below is real for this repository.
   The L6 journey reads an actual 2,000-row file, reports its rejected physical line,
   confirms in under five seconds and previews the same file again as duplicates.
   Native decoding accepts UTF-8 and BOM-labelled UTF-16; malformed text fails before import.
+- Category/rule journeys cover create/rename/delete/merge, first-match payee rules,
+  existing uncategorised rows and assigned imported rows. Commands disable editable
+  controls while saving so an asynchronous refresh cannot discard a fast edit.
+- Snapshot artifacts are staged by `scripts/collect-snapshots.mts`: each runner owns
+  only its own PNG suffix, while the first selected runner owns shared text/geometry.
 
 - Real shell: `npm run test:e2e` launches `out/` through Playwright and
   checks the badge, transaction persistence and the console; add journeys

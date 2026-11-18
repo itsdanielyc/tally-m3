@@ -1,3 +1,13 @@
+- complementary:
+  - link "Tally home":
+    - /url: "#"
+    - text: Tally 0.1
+  - paragraph: YOUR MONEY, IN VIEW
+  - navigation "Main navigation":
+    - button "Transactions"
+    - button "Categories"
+    - button "Settings"
+  - text: Stored on this device mock
 - main:
   - paragraph: THE EVERYDAY LEDGER
   - heading "Transactions" [level=1]

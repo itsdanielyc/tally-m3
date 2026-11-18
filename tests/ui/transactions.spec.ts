@@ -46,7 +46,7 @@ test("settings changes the one currency without changing stored minor units", as
   await expect(page.getByRole("cell", { name: "USD -12.34", exact: true })).toBeVisible();
 });
 test("tier 1: ledger accessibility structure", async ({ page }) => {
-  await expect(page.locator("main")).toMatchAriaSnapshot({ name: "ledger.aria.yml" });
+  await expect(page.locator("body")).toMatchAriaSnapshot({ name: "ledger.aria.yml" });
 });
 test("tier 2: ledger geometry", async ({ page }) => {
   assertGeometry(join(test.info().project.testDir, "__snapshots__", "transactions.spec.ts", "ledger.geometry.json"), await captureGeometry(page));

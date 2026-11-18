@@ -1,6 +1,7 @@
 import type { CsvMapping, ImportPreview, LedgerBackend, LedgerSnapshot } from "../contracts/ledger";
 import { inspectCsv, suggestMapping } from "../domain/csv";
 import { renderImportDialog, renderImportPreview } from "./import-view";
+import { disableControls } from "./controls";
 
 /** Own one mapping/receipt lifecycle; only the service's immutable token can confirm an import. */
 export function openImportDialog(source: string, snapshot: LedgerSnapshot, backend: LedgerBackend, onCommit: (next: LedgerSnapshot) => void): void {
@@ -38,7 +39,7 @@ export function openImportDialog(source: string, snapshot: LedgerSnapshot, backe
       const result = await backend.previewCsv(source, readMapping());
       if (request !== generation || !dialog.isConnected) return;
       current = result;
-      control("csv-preview").innerHTML = renderImportPreview(result, snapshot.ledger.currency);
+      control("csv-preview").innerHTML = renderImportPreview(result, snapshot.ledger.currency, snapshot.ledger.categories);
       confirm.disabled = result.accepted.length === 0;
     } catch (failure) { if (request === generation) showError(failure); }
     finally { if (request === generation) previewButton.disabled = false; }
@@ -56,7 +57,9 @@ export function openImportDialog(source: string, snapshot: LedgerSnapshot, backe
   confirm.addEventListener("click", () => {
     if (!current || committing) return;
     committing = true; confirm.disabled = true; previewButton.disabled = true;
-    void backend.execute({ type: "commitImport", token: current.token }).then((next) => { dialog.close(); onCommit(next); }).catch((failure: unknown) => { showError(failure); committing = false; confirm.disabled = false; previewButton.disabled = false; });
+    const restoreMapping = disableControls(control("csv-mapping-form"));
+    control<HTMLButtonElement>("csv-cancel").disabled = true;
+    void backend.execute({ type: "commitImport", token: current.token }).then((next) => { dialog.close(); onCommit(next); }).catch((failure: unknown) => { showError(failure); committing = false; restoreMapping(); control<HTMLButtonElement>("csv-cancel").disabled = false; confirm.disabled = false; previewButton.disabled = false; });
   });
   dialog.showModal();
   void preview();
