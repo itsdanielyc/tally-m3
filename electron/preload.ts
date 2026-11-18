@@ -4,8 +4,6 @@ import { contextBridge, ipcRenderer } from "electron";
 import { channels, type ElectronBridge } from "./bridge";
 
 const bridge: ElectronBridge = {
-  greet: (name) => ipcRenderer.invoke(channels.greet, name),
-  platformInfo: () => ipcRenderer.invoke(channels.platformInfo),
   ledger: {
     read: () => ipcRenderer.invoke(channels.ledgerRead),
     execute: (command) => ipcRenderer.invoke(channels.ledgerExecute, command),

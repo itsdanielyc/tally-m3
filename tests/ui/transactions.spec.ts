@@ -14,7 +14,7 @@ async function addTransaction(page: Page): Promise<void> {
 }
 
 test.beforeEach(async ({ page }) => {
-  await page.goto("/?ledger=1");
+  await page.goto("/");
   await expect(page.getByTestId("backend-badge")).toHaveText("mock");
   await expect(page.getByRole("heading", { name: "Transactions", exact: true })).toBeVisible();
 });
