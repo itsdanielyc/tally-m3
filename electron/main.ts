@@ -7,6 +7,8 @@ import type { CsvMapping, LedgerCommand } from "../contracts/ledger";
 import { LedgerService } from "../domain/service";
 import { FileLedgerStore } from "./ledger-store";
 import { readCsvSource } from "./csv-io";
+import { writeCsvExport } from "./csv-export";
+import { DEFAULT_CSV_FILENAME } from "../domain/export";
 
 const WINDOW_SIZE = { width: 1120, height: 780, minWidth: 640, minHeight: 500 };
 const isolatedTest = !app.isPackaged && process.env.TALLY_TEST_MODE === "1";
@@ -42,6 +44,19 @@ async function openCsvFile(): Promise<string | null> {
   return readCsvSource(selection.filePaths[0]);
 }
 
+async function saveCsvFile(source: unknown): Promise<boolean> {
+  if (typeof source !== "string") throw new Error("Export must be CSV text.");
+  const preset = isolatedTest ? process.env.TALLY_TEST_EXPORT_PATH : undefined;
+  let target = preset ? isolatedPath(preset) : undefined;
+  if (!target) {
+    const selection = await dialog.showSaveDialog({ title: "Export shown transactions", defaultPath: DEFAULT_CSV_FILENAME, filters: [{ name: "CSV files", extensions: ["csv"] }] });
+    if (selection.canceled || !selection.filePath) return false;
+    target = selection.filePath;
+  }
+  await writeCsvExport(target, source, join(app.getPath("userData"), "ledger.json"));
+  return true;
+}
+
 function createWindow(): void {
   const win = new BrowserWindow({
     ...WINDOW_SIZE,
@@ -75,6 +90,7 @@ app.whenReady().then(async () => {
   ipcMain.handle(channels.ledgerExecute, (event, command: unknown) => { assertTrustedFrame(event); return ledger.execute(command as LedgerCommand); });
   ipcMain.handle(channels.ledgerPreview, (event, source: unknown, mapping: unknown) => { assertTrustedFrame(event); return ledger.previewCsv(source as string, mapping as CsvMapping); });
   ipcMain.handle(channels.ledgerOpenCsv, (event) => { assertTrustedFrame(event); return openCsvFile(); });
+  ipcMain.handle(channels.ledgerExportCsv, (event, source: unknown) => { assertTrustedFrame(event); return saveCsvFile(source); });
   createWindow();
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

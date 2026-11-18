@@ -29,7 +29,7 @@ export function openImportDialog(source: string, snapshot: LedgerSnapshot, backe
   };
   const readMapping = (): CsvMapping => {
     const split = control<HTMLSelectElement>("csv-mode").value === "split";
-    return { date: selectedColumn("csv-date")!, payee: selectedColumn("csv-payee")!, amount: split ? null : selectedColumn("csv-amount"), debit: split ? selectedColumn("csv-debit") : null, credit: split ? selectedColumn("csv-credit") : null, note: selectedColumn("csv-note"), dateOrder: control<HTMLSelectElement>("csv-order").value as CsvMapping["dateOrder"], decimalSeparator: control<HTMLSelectElement>("csv-decimal").value as CsvMapping["decimalSeparator"] };
+    return { date: selectedColumn("csv-date")!, payee: selectedColumn("csv-payee")!, amount: split ? null : selectedColumn("csv-amount"), debit: split ? selectedColumn("csv-debit") : null, credit: split ? selectedColumn("csv-credit") : null, note: selectedColumn("csv-note"), category: selectedColumn("csv-category"), dateOrder: control<HTMLSelectElement>("csv-order").value as CsvMapping["dateOrder"], decimalSeparator: control<HTMLSelectElement>("csv-decimal").value as CsvMapping["decimalSeparator"] };
   };
   const showError = (failure: unknown): void => { error.textContent = failure instanceof Error ? failure.message : String(failure); error.hidden = false; };
   const preview = async (): Promise<void> => {
@@ -39,7 +39,7 @@ export function openImportDialog(source: string, snapshot: LedgerSnapshot, backe
       const result = await backend.previewCsv(source, readMapping());
       if (request !== generation || !dialog.isConnected) return;
       current = result;
-      control("csv-preview").innerHTML = renderImportPreview(result, snapshot.ledger.currency, snapshot.ledger.categories);
+      control("csv-preview").innerHTML = renderImportPreview(result, snapshot.ledger.currency, snapshot.ledger.categories.concat(result.newCategories));
       confirm.disabled = result.accepted.length === 0;
     } catch (failure) { if (request === generation) showError(failure); }
     finally { if (request === generation) previewButton.disabled = false; }

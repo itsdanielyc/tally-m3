@@ -7,11 +7,12 @@ import { LEDGER_VERSION, type LedgerSnapshot } from "../../contracts/ledger";
 let application: ElectronApplication;
 let ledgerWindow: Page;
 let directory: string;
+const allocatedDirectories: string[] = [];
 const consoleErrors: string[] = [];
 const BANK_ROW_COUNT = 2000;
 
 async function launchLedger(): Promise<void> {
-  application = await electron.launch({ args: ["."], cwd: process.cwd(), env: { ...process.env, TALLY_TEST_MODE: "1", TALLY_DATA_DIR: directory, TALLY_TEST_IMPORT_PATH: join(directory, "bank.csv") } });
+  application = await electron.launch({ args: ["."], cwd: process.cwd(), env: { ...process.env, TALLY_TEST_MODE: "1", TALLY_DATA_DIR: directory, TALLY_TEST_IMPORT_PATH: join(directory, "bank.csv"), TALLY_TEST_EXPORT_PATH: join(directory, "export.csv") } });
   ledgerWindow = await application.firstWindow();
   ledgerWindow.on("console", (message) => { if (message.type() === "error") consoleErrors.push(message.text()); });
   await ledgerWindow.waitForLoadState("domcontentloaded");
@@ -21,11 +22,12 @@ async function launchLedger(): Promise<void> {
 test.describe.configure({ mode: "serial" });
 test.beforeAll(async () => {
   directory = await createTestDirectory("electron-ledger-");
+  allocatedDirectories.push(directory);
   const rows = ['18/11/2026,Green Market,-12.50', '19/11/2026,Payday,2000.00', ...Array.from({ length: BANK_ROW_COUNT - 2 }, (_, index) => `01/10/2026,Archive ${index},-1.00`)];
   await writeFile(join(directory, "bank.csv"), `Statement\nGenerated today\nDate,Payee,Amount\n${rows.join("\n")}\n31/02/2026,Rejected,1.00`, "utf8");
   await launchLedger();
 });
-test.afterAll(async () => { await application?.close(); if (directory) await removeTestDirectory(directory); });
+test.afterAll(async () => { await application?.close(); for (const allocated of allocatedDirectories) await removeTestDirectory(allocated); });
 
 test("native ledger uses the contract across a sandboxed IPC bridge", async () => {
   await expect(ledgerWindow).toHaveTitle("Tally");
@@ -130,5 +132,55 @@ test("native monthly totals and budget equal the exact imported transactions", a
   await ledgerWindow.getByRole("button", { name: "Next month" }).click();
   await expect(ledgerWindow.getByTestId("summary-spending")).toHaveText("GBP 0.00");
   await ledgerWindow.getByRole("button", { name: "Previous month" }).click();
+  expect(consoleErrors).toEqual([]);
+});
+
+test("native filtered CSV exports and imports into an empty ledger as the same transaction", async () => {
+  await ledgerWindow.getByRole("button", { name: "Transactions", exact: true }).click();
+  await ledgerWindow.getByLabel("Search payee and note", { exact: true }).fill("green");
+  await ledgerWindow.getByLabel("Filter category", { exact: true }).selectOption({ label: "Food" });
+  await ledgerWindow.getByText("Date and amount filters", { exact: true }).click();
+  await ledgerWindow.getByLabel("From date", { exact: true }).fill("2026-11-01"); await ledgerWindow.getByLabel("To date", { exact: true }).fill("2026-11-30");
+  await ledgerWindow.getByLabel("Minimum amount", { exact: true }).fill("-100.00"); await ledgerWindow.getByLabel("Maximum amount", { exact: true }).fill("-10.00");
+  await ledgerWindow.getByRole("button", { name: "Apply filters", exact: true }).click();
+  await expect(ledgerWindow.getByTestId("page-count")).toHaveText("1–1 of 1");
+  const originalFile = await readFile(join(directory, "ledger.json"), "utf8");
+  await ledgerWindow.getByRole("button", { name: "Export CSV", exact: true }).click();
+  await expect(ledgerWindow.getByRole("status")).toContainText("Exported 1 transaction");
+  expect(await readFile(join(directory, "ledger.json"), "utf8")).toBe(originalFile);
+  const csv = await readFile(join(directory, "export.csv"), "utf8");
+  await ledgerWindow.screenshot({ path: `artifacts/e2e/find-export-${process.platform}-${process.arch}.png` });
+  await application.close(); directory = await createTestDirectory("electron-roundtrip-"); allocatedDirectories.push(directory);
+  await writeFile(join(directory, "bank.csv"), csv, "utf8"); await launchLedger();
+  await ledgerWindow.getByRole("button", { name: "Import CSV", exact: true }).click();
+  const dialog = ledgerWindow.getByRole("dialog", { name: "Import a bank CSV" });
+  await expect(dialog.getByRole("cell", { name: "Food", exact: true })).toBeVisible();
+  await dialog.getByRole("button", { name: "Confirm import" }).click();
+  await expect(ledgerWindow.getByRole("status")).toContainText("Imported 1 transaction");
+  const restored = await ledgerWindow.evaluate(() => window.electronBridge!.ledger.read());
+  expect(restored.ledger.transactions).toHaveLength(1);
+  expect(restored.ledger.transactions[0]).toMatchObject({ date: "2026-11-18", payee: "Green Market", amount: -1250, note: "" });
+  expect(restored.ledger.categories.find((category) => category.id === restored.ledger.transactions[0]?.categoryId)?.name).toBe("Food");
+});
+
+test("native import, delete and category merge each undo once with persistent state", async () => {
+  await ledgerWindow.getByRole("button", { name: "Undo import", exact: true }).click();
+  await expect(ledgerWindow.getByRole("button", { name: "Undo", exact: true })).toBeDisabled();
+  expect(JSON.parse(await readFile(join(directory, "ledger.json"), "utf8")).transactions).toEqual([]);
+  await ledgerWindow.getByRole("button", { name: "Import CSV", exact: true }).click(); await ledgerWindow.getByRole("button", { name: "Confirm import" }).click();
+  await expect(ledgerWindow.getByRole("status")).toContainText("Imported 1 transaction");
+  await ledgerWindow.getByRole("button", { name: "Delete Green Market", exact: true }).click();
+  await ledgerWindow.getByRole("button", { name: "Undo transaction delete", exact: true }).click();
+  await expect(ledgerWindow.getByRole("cell", { name: "Green Market", exact: true })).toBeVisible();
+  await ledgerWindow.getByRole("button", { name: "Categories", exact: true }).click();
+  await ledgerWindow.getByLabel("Category name", { exact: true }).fill("Other"); await ledgerWindow.getByRole("button", { name: "Add category", exact: true }).click();
+  await expect(ledgerWindow.getByRole("status")).toContainText("Category created");
+  await ledgerWindow.getByLabel("Merge source").selectOption({ label: "Food" }); await ledgerWindow.getByLabel("Merge target").selectOption({ label: "Other" });
+  await ledgerWindow.getByRole("button", { name: "Merge categories", exact: true }).click();
+  await ledgerWindow.getByRole("button", { name: "Undo category merge", exact: true }).click();
+  const restored = await ledgerWindow.evaluate(() => window.electronBridge!.ledger.read());
+  expect(restored.ledger.categories.find((category) => category.id === restored.ledger.transactions[0]?.categoryId)?.name).toBe("Food");
+  await expect(ledgerWindow.getByRole("button", { name: "Undo", exact: true })).toBeDisabled();
+  await ledgerWindow.screenshot({ path: `artifacts/e2e/undo-${process.platform}-${process.arch}.png` });
   expect(consoleErrors).toEqual([]);
 });

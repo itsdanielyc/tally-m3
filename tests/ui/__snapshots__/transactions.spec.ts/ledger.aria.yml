@@ -13,13 +13,28 @@
   - paragraph: THE EVERYDAY LEDGER
   - heading "Transactions" [level=1]
   - paragraph: A little clarity for every day.
+  - button "Export CSV" [disabled]
   - button "Import CSV"
   - button "Add transaction"
+  - text: Search payee and note
+  - textbox "Search payee and note":
+    - /placeholder: Find a transaction…
+  - text: Filter category
+  - combobox "Filter category":
+    - option "All categories" [selected]
+    - option "Uncategorised"
+  - button "Apply filters"
+  - button "Clear filters"
+  - group: Date and amount filters
   - region "Transaction ledger":
-    - heading "All transactions 0" [level=2]
+    - heading "Transactions 0" [level=2]
     - text: Amounts in GBP
     - heading "Your ledger is empty" [level=3]
     - paragraph: Add your first transaction to start keeping track.
     - button "Add your first transaction"
-    - text: One ledger. A clearer picture. Everything stays on your computer.
+    - text: 0–0 of 0
+    - button "Previous page" [disabled]
+    - button "Next page" [disabled]
+    - text: Export includes all matching pages. Everything stays on your computer.
   - status
+  - button "Undo" [disabled]
