@@ -6,7 +6,7 @@ import { defineConfig } from "vite";
 export default defineConfig({
   clearScreen: false,
   server: {
-    port: 1420,
+    port: 17241,
     strictPort: true,
     watch: { ignored: ["**/out/**", "**/release/**"] },
   },

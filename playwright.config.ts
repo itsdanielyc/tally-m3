@@ -22,7 +22,7 @@ export default defineConfig({
     },
   },
   use: {
-    baseURL: "http://localhost:1420",
+    baseURL: "http://127.0.0.1:17241",
     viewport: { width: 1024, height: 700 },
     deviceScaleFactor: 1,
     trace: "retain-on-failure",
@@ -32,9 +32,9 @@ export default defineConfig({
     { name: "chromium", use: { ...devices["Desktop Chrome"], viewport: { width: 1024, height: 700 } } },
   ],
   webServer: {
-    command: "npm run dev:web -- --strictPort --port 1420",
-    url: "http://localhost:1420",
-    reuseExistingServer: !process.env.CI,
+    command: "npm run dev:web -- --strictPort --host 127.0.0.1 --port 17241",
+    url: "http://127.0.0.1:17241",
+    reuseExistingServer: false,
     timeout: 60_000,
   },
 });

@@ -15,7 +15,7 @@ Read cold, mid-task. Every command below is real for this repository.
   downloads its binary on first launch; `node node_modules/electron/install.js`
   fetches it ahead of time (CI does this in its own step).
 - Dev loop with hot reload: `npm run dev` (electron-vite); renderer alone
-  in a browser: `npm run dev:web` (Vite on port 1420).
+  in a browser: `npm run dev:web` (Vite on port 17241).
 - Ready means: the main window titled "Tally" is visible and the backend
   badge reads "native".
 
