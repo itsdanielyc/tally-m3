@@ -24,3 +24,5 @@ The fixed scope and ordering come from SLICES.md. Solo ownership for every slice
 - Ruling: CI concurrency includes event type — delayed merged PR events cancelled main evidence — PR and main may briefly run concurrently.
 - Ruling: bootstrap workflow PRs merge before initial pixel baselines exist — GitHub dispatch needs workflows on the default branch — scaffold stays open until the subsequent baseline commit is fully green.
 <!-- keel:end -->
+
+Ruling: pin macos-26 with an arm64 assertion ? the successful initial macOS installer job identifies macos-26-arm64; the earlier macos-15 pin had no execution evidence ? runner-image updates are explicit.
