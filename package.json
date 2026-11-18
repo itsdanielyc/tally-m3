@@ -3,7 +3,7 @@
   "productName": "tally",
   "private": true,
   "version": "0.1.0",
-  "description": "tally: an Electron app scaffolded by Keel",
+  "description": "Offline household expense ledger",
   "author": "itsdanielyc <itsdanielyc@users.noreply.github.com>",
   "license": "MIT",
   "type": "module",
@@ -14,7 +14,7 @@
     "typecheck": "tsc --noEmit && tsc -p electron/tsconfig.json && tsc -p tests/tsconfig.json",
     "build": "npm run typecheck && electron-vite build",
     "start": "electron-vite preview",
-    "package": "npm run build && electron-builder --publish never",
+    "package": "npm run check:versions && npm run build && electron-builder --publish never",
     "test:unit": "vitest run tests/unit",
     "test:ui": "playwright test",
     "test:ui:update": "cross-env UPDATE_SNAPSHOTS=1 playwright test --update-snapshots=all",
@@ -22,7 +22,10 @@
     "contact-sheet": "node scripts/contact-sheet.mjs",
     "triage": "node scripts/triage.mjs",
     "test:contract": "vitest run tests/contract",
-    "test:integration": "vitest run tests/integration"
+    "test:integration": "vitest run tests/integration",
+    "check:versions": "node scripts/check-versions.mts",
+    "release:gate": "node scripts/release-gate.mts",
+    "checksums": "node scripts/checksums.mts"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.0",

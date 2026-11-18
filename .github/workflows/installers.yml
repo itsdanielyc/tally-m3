@@ -7,6 +7,7 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  workflow_call:
 
 concurrency:
   group: installers-${{ github.ref }}
@@ -61,6 +62,8 @@ jobs:
         env:
           NO_AT_BRIDGE: "1"
         run: xvfb-run -a --server-args="-screen 0 1280x1024x24" bash scripts/installer-test.sh
+      - name: SHA-256 checksums
+        run: npm run checksums
       - name: Upload bundles
         if: always()
         uses: actions/upload-artifact@v7
@@ -71,5 +74,6 @@ jobs:
             release/*.dmg
             release/*.deb
             release/*.AppImage
+            release/SHA256SUMS-*.txt
           if-no-files-found: warn
           retention-days: 7

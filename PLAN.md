@@ -13,6 +13,10 @@ The fixed scope and ordering come from SLICES.md. Solo ownership for every slice
 | 6 | Release readiness | 0.1.0 versions agree; changelog and unsigned notes; release gate proven to reject unproven commit; fresh CI and installer round trips green for candidate commit; ledger current; no tag/release | L0-L7 | solo | open |
 
 ## Rulings
+- Ruling: retain 0.1.0, the version fixed by SLICES.md and already seeded in package/lock — no release exists yet — future versions update package, lock and changelog together.
+- Ruling: release readiness remains unsigned with no updater, secrets, tag or GitHub release — ADR 001 and the owner's explicit stop boundary — Windows/macOS download warnings remain.
+- Ruling: version-zero optional category/note values default only when absent/null, in memory until a successful save — older valid rows must keep opening — unknown versions and invalid required fields still fail without replacement.
+- Ruling: after ledger/readiness documentation is stamped, prove that immutable final commit again and record exact run IDs in the release-readiness PR linked from RELEASE-NOTES.md — embedding its own future run IDs would change its SHA — no source or documentation changes follow that final proof.
 - Ruling: undo retains only the most recent transaction/category/rule delete, category merge or import; any intervening changed write clears it, while reads/previews/exports/failed writes/no-ops preserve it — implement immediate one-step undo without reverting unrelated work — history is not retained across process restarts.
 - Ruling: transaction pages contain 50 rows but export includes the entire matching filter set — bound DOM work as the ledger grows and satisfy filtered-set export — the page footer states this explicitly.
 - Ruling: exported categories/notes round-trip through optional CSV mappings, reserving new categories in the receipt and creating them with the rows on confirmation — preserve transaction fields in an empty ledger — internal IDs are regenerated.

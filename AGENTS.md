@@ -9,6 +9,8 @@ Use only repository-local `.agents/skills/keel*` skills. Solo: one agent owns al
 - contracts: `npm run test:contract`; integration: `npm run test:integration`
 - browser/mock: `npm run test:ui`; real shell: `npm run build` then `npm run test:e2e`
 - installer: `.github/workflows/installers.yml`; triage: `npm run triage [run-id]`
+- release version drift: `npm run check:versions`; read-only exact-commit gate: `npm run release:gate -- <sha>`
+- manual `release` workflow rechecks bundles; publishing runs only on a future `v*` tag. Do not tag in this task.
 - manual launch/evidence: `.agents/skills/verify-tally/SKILL.md`
 
 ## Layout

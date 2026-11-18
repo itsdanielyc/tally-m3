@@ -1,0 +1,67 @@
+name: release
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  gate:
+    name: Exact candidate proof
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - run: npm run check:versions
+      - name: Require CI and installers on this exact commit and all Tier 1 jobs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: npm run release:gate
+  bundles:
+    name: Rebuild and round-trip bundles
+    needs: [gate]
+    uses: ./.github/workflows/installers.yml
+  publish:
+    name: Publish tagged version
+    needs: [bundles]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: bundles-*
+          path: assets
+          merge-multiple: true
+      - name: Prepare version notes and signing status
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFile, writeFile} from 'node:fs/promises';
+          const version = process.env.VERSION.slice(1);
+          const log = await readFile('CHANGELOG.md','utf8');
+          const start = log.indexOf(`## [${version}]`);
+          if (start < 0) throw Error('Missing version changelog');
+          const next = log.indexOf('\n## [', start + 1);
+          const section = log.slice(start, next < 0 ? undefined : next).replace('<!-- keel:end -->','').trim();
+          const policy = await readFile('RELEASE-NOTES.md','utf8');
+          const signing = policy.split('<!-- signing:start -->')[1]?.split('<!-- signing:end -->')[0]?.trim();
+          if (!signing) throw Error('Missing signing status');
+          await writeFile('notes.md', `${section}\n\n${signing}\n`);
+          NODE
+      - name: Create release only for an actual tag event
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          pre=""; case "$GITHUB_REF_NAME" in v0.*) pre="--prerelease";; esac
+          gh release create "$GITHUB_REF_NAME" assets/* --title "$GITHUB_REF_NAME" --notes-file notes.md $pre

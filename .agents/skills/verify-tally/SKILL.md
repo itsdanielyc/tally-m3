@@ -62,6 +62,10 @@ Read cold, mid-task. Every command below is real for this repository.
 - The final native journey undoes import/delete/merge once. File-failure integration
   tests keep the undo slot after a denied write. Filters use signed, inclusive ranges;
   export includes every matching page, not only the 50 DOM rows currently visible.
+- Pre-tag readiness: `npm run check:versions`, then `npm run release:gate -- <full-sha>`.
+  The gate reads exact successful CI/installer runs and every Tier 1 job. It writes no tag
+  or release. A manual `release` workflow rebuilds/install-tests bundles; publish is skipped.
+  `npm run checksums` records the built NSIS/dmg/deb/AppImage SHA-256 values.
 
 - Real shell: `npm run test:e2e` launches `out/` through Playwright and
   checks the badge, transaction persistence and the console; add journeys
