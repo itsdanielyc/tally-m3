@@ -38,9 +38,12 @@ is never rounded up to "tested"; anything not listed here is unverified.
 | 2026-11-18 21:30 UTC | L0-L6 / release candidate | Version/legacy optional-field readiness plus the complete product suite green at the frozen candidate | windows-x64, macos-arm64, linux-x64 | [CI 44400865719](https://github.com/itsdanielyc/tally-m3/actions/runs/44400865719), 4/4 jobs green on 77a654000a8768209263907a705d2f6e51761edb; fast 72 unit + 72 contract + 15 I/O, browser 16, native 8 per OS |
 | 2026-11-18 21:30 UTC | L7 / release candidate | NSIS, dmg, deb and AppImage package/install/launch/remove with SHA-256 manifests and hidden Windows helpers | windows-x64, macos-arm64, linux-x64 | [installers 44400853594](https://github.com/itsdanielyc/tally-m3/actions/runs/44400853594), 3/3 green on candidate 77a6540; artifacts bundles-* include SHA256SUMS; unsigned/no notarization |
 | 2026-11-18 21:30 UTC | Release gate positive proof | Exact candidate and every Tier 1 CI/installer job accepted without a tag or release | local windows x64 / GitHub read-only | npm run release:gate -- 77a654000a8768209263907a705d2f6e51761edb exit 0; confirms CI 44400865719 and installers 44400853594 |
+| 2026-11-18 21:36 UTC | L0-L7 / slice 6 pre-tag readiness | Version 0.1.0, complete scope, exact candidate gate, unsigned notes, checksum bundles and all Tier 1 proof before any tag; main unchanged code source | windows-x64, macos-arm64, linux-x64 | main 4502d360ae1522a419fc4002ea55939309cf9ef7: [CI 44402278483](https://github.com/itsdanielyc/tally-m3/actions/runs/44402278483) and [installers 44402278216](https://github.com/itsdanielyc/tally-m3/actions/runs/44402278216), all jobs green; release:gate exit 0 accepts exact SHA; no tag/release created |
+| 2026-11-18 21:36 UTC | Immutable final proof record | The docs-only readiness stamp is followed by fresh exact-commit CI/installers/manual release proof, recorded externally so the proved SHA stays fixed | all Tier 1 | [release-readiness PR 24](https://github.com/itsdanielyc/tally-m3/pull/24) is the canonical final SHA/run attestation linked from RELEASE-NOTES.md; no source/doc edits after that final proof |
 
 ## Unverified
 
-- Slice 6 release readiness is not complete.
+- Tag-triggered publishing, GitHub release creation and published-asset smoke installs are intentionally not run.
+- Screen-reader checks and platforms outside the fixed Tier 1 list are not verified.
 - Isolated local Windows stress worker fast-fail remains unexplained: [issue #9](https://github.com/itsdanielyc/tally-m3/issues/9). Subsequent 30 repeats passed 90/90.
 - Signing/notarization and physical power-cut testing have not been performed.
