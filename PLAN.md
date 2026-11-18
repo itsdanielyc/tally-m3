@@ -26,3 +26,5 @@ The fixed scope and ordering come from SLICES.md. Solo ownership for every slice
 <!-- keel:end -->
 
 Ruling: pin macos-26 with an arm64 assertion ? the successful initial macOS installer job identifies macos-26-arm64; the earlier macos-15 pin had no execution evidence ? runner-image updates are explicit.
+
+Ruling: retain the demonstrated macos-latest runner with explicit arm64 assertion; image names do not establish runner labels ? avoid unproven pin aliases ? capacity remains external. Resume snapshots for only the missing OS; already reviewed Linux/Windows captures remain valid because renderer bytes are unchanged.
