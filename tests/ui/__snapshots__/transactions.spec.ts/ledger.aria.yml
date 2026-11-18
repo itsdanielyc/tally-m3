@@ -2,6 +2,7 @@
   - paragraph: THE EVERYDAY LEDGER
   - heading "Transactions" [level=1]
   - paragraph: A little clarity for every day.
+  - button "Import CSV"
   - button "Add transaction"
   - region "Transaction ledger":
     - heading "All transactions 0" [level=2]
