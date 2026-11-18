@@ -13,6 +13,7 @@ The fixed scope and ordering come from SLICES.md. Solo ownership for every slice
 | 6 | Release readiness | 0.1.0 versions agree; changelog and unsigned notes; release gate proven to reject unproven commit; fresh CI and installer round trips green for candidate commit; ledger current; no tag/release | L0-L7 | solo | open |
 
 ## Rulings
+- Ruling: implement slice 1 only on an isolated branch while macOS scaffold jobs await hosted capacity — main remains the scaffold and no slice can be marked done without its complete Tier 1 proof — this defers the scaffold skill's before-feature scheduling gate, not any definition of done; feature merge waits for scaffold proof.
 - Ruling: use `com.example.tally` as the unsigned bundle identifier — no organization identifier supplied — changing it later may change install identity.
 - Ruling: default currency GBP, configurable as a three-letter currency with two minor digits — single-currency UK-context household ledger — non-two-digit currencies require a later scope decision.
 - Ruling: first matching payee rule wins, case-insensitive contains; duplicate payees use trimmed case-folded text — deterministic and useful bank matching — differently cased payees are considered duplicates.

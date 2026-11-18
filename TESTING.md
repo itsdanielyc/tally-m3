@@ -36,4 +36,18 @@ later tests must fail on missing behavior or a deliberate mutation.
 Flakiness follows `.agents/skills/keel-test/SKILL.md`: reproduce, quarantine with issue,
 fix cause; one retry at L6/L7 only, never lower. No wider timeout without a found cause.
 No signing, notarization, screen reader or other distribution/architecture claim in v0.1.0.
+
+## Specific edge surfaces
+- Money: one cent, decimal comma/grouping, excess precision, safe-integer boundary;
+  reject invalid calendar dates including non-leap February 29.
+- Persistence: failed flush/rename leaves the prior file and live state unchanged;
+  interrupted temporary file, unsupported/corrupt schema, migration and restart.
+- CSV: preamble before header, quoted delimiters/newlines, debit/credit mapping,
+  same-file and existing duplicates, stale preview, failed atomic import and 2,000 rows.
+- Categories/rules: merge into self/missing category, deleting referenced categories,
+  first matching rule and imported versus already categorised transactions.
+- Summary/filter: year rollover, mixed income/spending, uncategorised totals,
+  exact budget boundary, combined inclusive filters and empty results.
+- Export/undo: commas/quotes/newlines and formula-like text preserve bytes on round trip;
+  immediate undo survives restart through persisted state; second undo fails.
 <!-- keel:end -->
