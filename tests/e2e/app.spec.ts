@@ -7,15 +7,18 @@ import { mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { greeting } from "../../contracts/greet";
 import type { PlatformInfo } from "../../electron/bridge";
+import { createTestDirectory, removeTestDirectory } from "../support/directories";
 
 let app: ElectronApplication;
 let win: Page;
 const consoleErrors: string[] = [];
+let dataDirectory: string;
 
 test.describe.configure({ mode: "serial" });
 
 test.beforeAll(async () => {
-  app = await electron.launch({ args: ["."], cwd: process.cwd() });
+  dataDirectory = await createTestDirectory("scaffold-electron-");
+  app = await electron.launch({ args: ["."], cwd: process.cwd(), env: { ...process.env, TALLY_TEST_MODE: "1", TALLY_DATA_DIR: dataDirectory } });
   win = await app.firstWindow();
   win.on("console", (m) => {
     if (m.type() === "error") consoleErrors.push(m.text());
@@ -25,6 +28,7 @@ test.beforeAll(async () => {
 
 test.afterAll(async () => {
   await app?.close();
+  if (dataDirectory) await removeTestDirectory(dataDirectory);
 });
 
 test.describe("tally in the real shell", () => {

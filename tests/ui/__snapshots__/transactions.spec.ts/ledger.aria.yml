@@ -1,0 +1,13 @@
+- main:
+  - paragraph: THE EVERYDAY LEDGER
+  - heading "Transactions" [level=1]
+  - paragraph: A little clarity for every day.
+  - button "Add transaction"
+  - region "Transaction ledger":
+    - heading "All transactions 0" [level=2]
+    - text: Amounts in GBP
+    - heading "Your ledger is empty" [level=3]
+    - paragraph: Add your first transaction to start keeping track.
+    - button "Add your first transaction"
+    - text: One ledger. A clearer picture. Everything stays on your computer.
+  - status

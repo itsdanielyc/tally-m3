@@ -5,10 +5,11 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "tests/ui",
+  outputDir: "test-results/ui",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: 0,
-  workers: process.env.CI ? 2 : undefined,
+  workers: 2,
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",
   // One template for every snapshot kind. Pixel snapshots put the engine and
   // OS into their own name; ARIA and geometry snapshots are shared by design.

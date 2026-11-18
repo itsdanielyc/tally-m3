@@ -8,6 +8,6 @@ export default defineConfig({
   server: {
     port: 17241,
     strictPort: true,
-    watch: { ignored: ["**/out/**", "**/release/**"] },
+    watch: { ignored: ["**/out/**", "**/release/**", "**/.cache/**", "**/.agents/**", "**/.claude/**"] },
   },
 });
