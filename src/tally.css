@@ -27,6 +27,22 @@ body.tally-app {
 .tally-app .form-actions { display: flex; gap: 8px; margin-top: 14px; }
 .tally-app .merge-form { display: grid; grid-template-columns: 1fr 1fr auto; gap: 14px; align-items: end; }
 .tally-app .merge-form button { white-space: nowrap; }
+.tally-app .month-controls { display: flex; gap: 8px; align-items: center; }
+.tally-app .month-controls input { width: 165px; }
+.tally-app .summary-overview { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 28px; }
+.tally-app .summary-stat, .tally-app .summary-category { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 21px; min-width: 0; }
+.tally-app .summary-stat h2 { font-size: 11px; color: var(--muted); font-weight: 500; }
+.tally-app .summary-stat p { font-size: 24px; letter-spacing: -1px; font-weight: 650; margin-top: 8px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.tally-app .summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-top: 20px; }
+.tally-app .summary-category h3 { font-size: 16px; }
+.tally-app .category-totals { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 16px 0; }
+.tally-app .category-totals dt { font-size: 10px; color: var(--muted); }
+.tally-app .category-totals dd { font-size: 12px; margin: 5px 0 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.tally-app .budget-input { display: flex; gap: 8px; }
+.tally-app .budget-input input { min-width: 0; }
+.tally-app .budget-remaining { margin-top: 15px; font-size: 12px; font-weight: 500; }
+.tally-app progress { width: 100%; height: 8px; margin-top: 8px; accent-color: #748b61; }
+.tally-app progress.over-budget { accent-color: var(--accent); }
 .tally-app .import-dialog { width: 1000px; overflow: hidden; }
 .tally-app .import-scroll { max-height: calc(100vh - 160px); overflow-y: auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; padding-right: 5px; }
 .tally-app .import-dialog h2 { font-size: 20px; }
@@ -110,6 +126,7 @@ body.tally-app {
 @media (max-width: 900px) {
   .tally-app .import-scroll { display: block; }
   .tally-app .management-grid { grid-template-columns: 1fr; }
+  .tally-app .summary-grid { grid-template-columns: 1fr; }
   .tally-app .merge-form { grid-template-columns: 1fr; }
   .tally-app #csv-preview { border-top: 1px solid var(--line); margin-top: 22px; padding-top: 18px; }
 }

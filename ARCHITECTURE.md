@@ -19,6 +19,8 @@ Contract changes land in a separate small PR before their feature implementation
 The main process owns a single ledger JSON document in application data: schema version,
 currency, transactions, categories, rules and monthly budgets. Amounts and aggregates are safe integers.
 Commands validate all input at the trust boundary. Mutations clone and validate a candidate,
+Monthly totals are derived with BigInt; persisted transactions and budgets stay bounded integers.
+Credits offset category budget use. Month navigation uses calendar strings, without timezone conversion.
 flush a temporary file, atomically rename it, then publish the candidate to memory.
 Failed writes leave both the previous file and in-memory state intact. Startup never silently
 replaces corrupt or unsupported data. Version migration is explicit and fixture-tested.

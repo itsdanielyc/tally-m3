@@ -6,12 +6,16 @@ import type { LedgerCommand, LedgerSnapshot } from "../contracts/ledger";
 import { openImportDialog } from "./import-dialog";
 import { bindCategoryEvents } from "./category-controller";
 import { disableControls } from "./controls";
+import { bindSummaryEvents } from "./summary-controller";
+import { validateMonth } from "../domain/summary";
 
 let snapshot: LedgerSnapshot;
 let activeView: ActiveView = "transactions";
 let editingTransactionId: string | undefined;
 let busy = false;
 let errorMessage = "";
+const initialDate = new Date();
+let selectedMonth = `${initialDate.getFullYear()}-${String(initialDate.getMonth() + 1).padStart(2, "0")}`;
 
 /** Require a known view element; a broken template fails at its source rather than later. */
 function element<T extends HTMLElement>(id: string): T {
@@ -22,8 +26,9 @@ function element<T extends HTMLElement>(id: string): T {
 
 function render(): void {
   document.body.className = "tally-app";
-  document.body.innerHTML = renderApplication(snapshot, activeView, ledgerBackend.kind, errorMessage);
+  document.body.innerHTML = renderApplication(snapshot, activeView, ledgerBackend.kind, errorMessage, selectedMonth);
   bindCategoryEvents(snapshot, execute);
+  bindSummaryEvents(selectedMonth, changeMonth, execute, reportOperationError);
   document.getElementById("transaction-form")?.addEventListener("submit", (event) => { event.preventDefault(); void saveTransaction(); });
   document.getElementById("settings-form")?.addEventListener("submit", (event) => {
     event.preventDefault(); void execute({ type: "setCurrency", currency: element<HTMLSelectElement>("currency").value });
@@ -32,22 +37,32 @@ function render(): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     input.value = "";
-    if (file) void file.text().then(showImport).catch(reportImportError);
+    if (file) void file.text().then(showImport).catch(reportOperationError);
   });
 }
 
 function showImport(source: string): void {
   try { openImportDialog(source, snapshot, ledgerBackend, (next) => { snapshot = next; activeView = "transactions"; errorMessage = ""; render(); }); }
-  catch (error) { reportImportError(error); }
+  catch (error) { reportOperationError(error); }
 }
 
-function reportImportError(error: unknown): void { errorMessage = describeError(error); render(); }
+function reportOperationError(error: unknown): void {
+  errorMessage = describeError(error);
+  const alert = document.querySelector<HTMLElement>('main [role="alert"]');
+  if (alert) { alert.textContent = errorMessage; alert.hidden = false; }
+  else render();
+}
+
+function changeMonth(month: string): void {
+  try { selectedMonth = validateMonth(month); errorMessage = ""; render(); }
+  catch (error) { reportOperationError(error); }
+}
 
 async function chooseImportFile(): Promise<void> {
   if (ledgerBackend.kind === "mock") { element<HTMLInputElement>("csv-file-input").click(); return; }
   busy = true;
   try { const source = await ledgerBackend.openCsv(); if (source !== null) showImport(source); }
-  catch (error) { reportImportError(error); }
+  catch (error) { reportOperationError(error); }
   finally { busy = false; }
 }
 
@@ -60,10 +75,7 @@ async function execute(command: LedgerCommand): Promise<boolean> {
   const restoreControls = main ? disableControls(main) : () => {};
   try { snapshot = await ledgerBackend.execute(command); render(); return true; }
   catch (error) {
-    errorMessage = describeError(error);
-    const alert = document.querySelector<HTMLElement>('main [role="alert"]');
-    if (alert) { alert.textContent = errorMessage; alert.hidden = false; }
-    else render();
+    reportOperationError(error);
     return false;
   }
   finally { busy = false; restoreControls(); }

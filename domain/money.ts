@@ -23,10 +23,11 @@ export function parseMinorUnits(source: string, decimalSeparator: "." | "," = ".
 }
 
 /** Format integer minor units as an exact signed decimal, without a floating-point division. */
-export function formatMinorUnits(amount: number): string {
-  assertMinorUnits(amount);
-  const absolute = BigInt(amount < 0 ? -amount : amount);
-  return `${amount < 0 ? "-" : ""}${absolute / MINOR_UNIT_FACTOR}.${String(absolute % MINOR_UNIT_FACTOR).padStart(2, "0")}`;
+export function formatMinorUnits(amount: number | bigint): string {
+  if (typeof amount === "number") assertMinorUnits(amount);
+  const integer = BigInt(amount);
+  const absolute = integer < 0n ? -integer : integer;
+  return `${integer < 0n ? "-" : ""}${absolute / MINOR_UNIT_FACTOR}.${String(absolute % MINOR_UNIT_FACTOR).padStart(2, "0")}`;
 }
 
 /** Fail at the boundary instead of rounding fractional or unsafe money. */

@@ -1,18 +1,19 @@
 import { SUPPORTED_CURRENCIES, type LedgerSnapshot, type Transaction } from "../contracts/ledger";
 import { formatMinorUnits } from "../domain/money";
 import { renderCategories } from "./categories-view";
+import { renderSummary } from "./summary-view";
 import { escapeHtml } from "./html";
 export { escapeHtml } from "./html";
 
-export type ActiveView = "transactions" | "settings" | "categories";
+export type ActiveView = "transactions" | "settings" | "categories" | "summary";
 
 /** Render a persistent navigation shell around a single active, semantic main surface. */
-export function renderApplication(snapshot: LedgerSnapshot, activeView: ActiveView, backendKind: string, error: string): string {
-  const content = activeView === "settings" ? renderSettings(snapshot) : activeView === "categories" ? renderCategories(snapshot) : renderTransactions(snapshot);
+export function renderApplication(snapshot: LedgerSnapshot, activeView: ActiveView, backendKind: string, error: string, month: string): string {
+  const content = activeView === "settings" ? renderSettings(snapshot) : activeView === "categories" ? renderCategories(snapshot) : activeView === "summary" ? renderSummary(snapshot, month) : renderTransactions(snapshot);
   return `<aside class="sidebar" data-geo="sidebar">
     <a class="wordmark" href="#" aria-label="Tally home"><span class="brand-mark" aria-hidden="true">t</span>Tally<span class="version">0.1</span></a>
     <p class="nav-label">YOUR MONEY, IN VIEW</p>
-    <nav aria-label="Main navigation">${navigationButton("transactions", "Transactions", activeView)}${navigationButton("categories", "Categories", activeView)}${navigationButton("settings", "Settings", activeView)}</nav>
+    <nav aria-label="Main navigation">${navigationButton("transactions", "Transactions", activeView)}${navigationButton("categories", "Categories", activeView)}${navigationButton("summary", "Summary", activeView)}${navigationButton("settings", "Settings", activeView)}</nav>
     <div class="sidebar-foot"><span class="local-dot" aria-hidden="true"></span> Stored on this device<br><small data-testid="backend-badge">${backendKind}</small></div>
   </aside>
   <main class="workspace" data-geo="workspace">${content}
@@ -53,7 +54,7 @@ function renderTransactionDialog(snapshot: LedgerSnapshot): string {
     <label for="transaction-date">Date</label><input id="transaction-date" name="date" type="date" required>
     <label for="transaction-payee">Payee</label><input id="transaction-payee" name="payee" maxlength="200" required autocomplete="off">
     <label for="transaction-amount">Amount</label><input id="transaction-amount" name="amount" inputmode="decimal" required aria-describedby="amount-help" placeholder="-12.34"><small id="amount-help">Negative for spending. Positive for income. Use two decimal places.</small>
-    <label for="transaction-category">Category <span class="optional">(optional)</span></label><select id="transaction-category" name="category"><option value="">Uncategorised</option>${snapshot.ledger.categories.map((category) => `<option value="${escapeHtml(category.id)}">${escapeHtml(category.name)}</option>`).join("")}</select>
+    <label for="transaction-category">Category <span class="optional">(optional)</span></label><select id="transaction-category" name="category" aria-label="Category"><option value="">Uncategorised</option>${snapshot.ledger.categories.map((category) => `<option value="${escapeHtml(category.id)}">${escapeHtml(category.name)}</option>`).join("")}</select>
     <label for="transaction-note">Note <span class="optional" aria-hidden="true">(optional)</span></label><textarea id="transaction-note" name="note" aria-label="Note" rows="3" maxlength="10000"></textarea>
     <p id="transaction-error" class="error" role="alert" hidden></p><div class="dialog-actions"><button type="button" data-action="cancel-transaction">Cancel</button><button class="primary" type="submit">Save transaction</button></div></form></dialog>`;
 }

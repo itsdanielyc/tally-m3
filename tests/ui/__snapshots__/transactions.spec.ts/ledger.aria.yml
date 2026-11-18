@@ -6,6 +6,7 @@
   - navigation "Main navigation":
     - button "Transactions"
     - button "Categories"
+    - button "Summary"
     - button "Settings"
   - text: Stored on this device mock
 - main:
