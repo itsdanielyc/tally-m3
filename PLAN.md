@@ -9,7 +9,7 @@ The fixed scope and ordering come from SLICES.md. Solo ownership for every slice
 | 2 | Import a bank CSV | Delimiter/header/date/money mapping fixtures, rejected line reasons, within-file/existing duplicates, 2,000 rows <5s; atomic all-or-none import; preview UI and native-dialog-bypass real-shell journey; Tier 1 green | L0-L6 | solo | done: CI 44384868258 |
 | 3 | Categories and rules | Category create/rename/delete/merge semantics and ordered contains rules tested, UI manages them and applies to uncategorised/imported rows; Electron journey; Tier 1 green | L0-L6 | solo | done: CI 44389609634 |
 | 4 | Monthly summary and budgets | Integer exact per-category/income/spending totals, boundary months, budget remaining/over tested; previous/next UI and Electron summary; Tier 1 green | L0-L6 | solo | done: CI 44395289746 |
-| 5 | Find, export, undo | Combined filters, escaped CSV round trip, one immediate undo of delete/merge/import with atomic persistence; UI and native export/reimport journey; Tier 1 green | L0-L6 | solo | open |
+| 5 | Find, export, undo | Combined filters, escaped CSV round trip, one immediate undo of delete/merge/import with atomic persistence; UI and native export/reimport journey; Tier 1 green | L0-L6 | solo | done: CI 44399167400 |
 | 6 | Release readiness | 0.1.0 versions agree; changelog and unsigned notes; release gate proven to reject unproven commit; fresh CI and installer round trips green for candidate commit; ledger current; no tag/release | L0-L7 | solo | open |
 
 ## Rulings
