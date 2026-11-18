@@ -1,5 +1,5 @@
 import "./tally.css";
-import { ledgerBackend } from "./ledger-api";
+import { ledgerBackend } from "./api";
 import { renderApplication, type ActiveView } from "./view";
 import { formatMinorUnits, parseMinorUnits } from "../domain/money";
 import type { LedgerCommand, LedgerSnapshot } from "../contracts/ledger";

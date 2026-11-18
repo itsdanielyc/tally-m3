@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 const source = 'Statement\nGenerated today\nWhen;Merchant;Debit;Credit\n01/02/2026;Corner Shop;12,34;\n19/02/2026;Salary;;2000,00\n31/02/2026;Broken;1,00;';
 
-test.beforeEach(async ({ page }) => { await page.goto("/?ledger=1"); await expect(page.getByTestId("backend-badge")).toHaveText("mock"); });
+test.beforeEach(async ({ page }) => { await page.goto("/"); await expect(page.getByTestId("backend-badge")).toHaveText("mock"); });
 test("maps a bank file, previews dates and rejections, confirms, and counts duplicates on repeat", async ({ page }) => {
   await page.getByTestId("csv-file-input").setInputFiles({ name: "bank.csv", mimeType: "text/csv", buffer: Buffer.from(source) });
   const dialog = page.getByRole("dialog", { name: "Import a bank CSV" });

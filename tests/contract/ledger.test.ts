@@ -5,7 +5,7 @@ import { LedgerService } from "../../domain/service";
 import { MemoryLedgerStore } from "../../domain/memory-store";
 import { FileLedgerStore } from "../../electron/ledger-store";
 import type { LedgerBackend, TransactionDraft } from "../../contracts/ledger";
-import { createLedgerMock } from "../../src/ledger-api";
+import { createLedgerMock } from "../../src/api";
 
 const transaction: TransactionDraft = { date: "2026-11-18", payee: "Grocer", amount: -1234, categoryId: null, note: "Milk" };
 

@@ -1,45 +1,21 @@
-// The seam between the UI and the backend. Inside Electron the calls go
-// through the preload bridge (window.electronBridge) over IPC to the main
-// process; in a plain browser (Vite dev server, Playwright, a web build) a
-// labelled mock answers instead. The mock is held to the same contract as the
-// main process by tests/unit/contract.test.ts and by the real-shell suite, so
-// a UI test that passes against the mock means something.
-import type { ElectronBridge, PlatformInfo } from "../electron/bridge";
-import { greeting } from "../contracts/greet";
+import type { LedgerBackend, LedgerStore } from "../contracts/ledger";
+import { MemoryLedgerStore } from "../domain/memory-store";
+import { LedgerService } from "../domain/service";
+import type { ElectronBridge } from "../electron/bridge";
 
-export type { PlatformInfo };
-
-export interface Backend {
-  readonly kind: "native" | "mock";
-  greet(name: string): Promise<string>;
-  platformInfo(): Promise<PlatformInfo>;
+/** The memory mock uses the real command service; only persistence and OS dialogs differ. */
+export function createLedgerMock(store: LedgerStore = new MemoryLedgerStore(), createId?: () => string): LedgerBackend {
+  const service = LedgerService.open(store, createId);
+  return {
+    kind: "mock",
+    read: async () => (await service).read(),
+    execute: async (command) => (await service).execute(command),
+    previewCsv: async (source, mapping) => (await service).previewCsv(source, mapping),
+    openCsv: async () => null,
+    exportCsv: async () => false,
+  };
 }
 
-declare global {
-  interface Window {
-    electronBridge?: ElectronBridge;
-  }
-}
-
-const bridge = typeof window !== "undefined" ? window.electronBridge : undefined;
-
-export const isNative = bridge !== undefined;
-
-export const mock: Backend = {
-  kind: "mock",
-  greet: async (name) => greeting(name),
-  platformInfo: async () => ({
-    os: "mock",
-    arch: "mock",
-    electron: "mock",
-    packaged: false,
-  }),
-};
-
-export const backend: Backend = bridge
-  ? {
-      kind: "native",
-      greet: (name) => bridge.greet(name),
-      platformInfo: () => bridge.platformInfo(),
-    }
-  : mock;
+const nativeLedger: ElectronBridge["ledger"] | undefined = typeof window === "undefined" ? undefined : window.electronBridge?.ledger;
+/** Only this adapter selects native IPC or the visibly labelled memory backend. */
+export const ledgerBackend: LedgerBackend = nativeLedger ? { kind: "native", ...nativeLedger } : createLedgerMock();

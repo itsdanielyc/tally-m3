@@ -5,7 +5,7 @@
 import { app, BrowserWindow, ipcMain, dialog, session, type IpcMainInvokeEvent } from "electron";
 import { mkdirSync } from "node:fs";
 import { join, resolve, sep } from "node:path";
-import { channels, type PlatformInfo } from "./bridge";
+import { channels } from "./bridge";
 import type { CsvMapping, LedgerCommand } from "../contracts/ledger";
 import { LedgerService } from "../domain/service";
 import { FileLedgerStore } from "./ledger-store";
@@ -30,18 +30,7 @@ if (isolatedTest) {
 const ownsLedger = app.requestSingleInstanceLock();
 if (!ownsLedger) app.quit();
 
-function greet(name: string): string {
-  return `Hello, ${name}! You've been greeted from the main process!`;
-}
 
-function platformInfo(): PlatformInfo {
-  return {
-    os: process.platform,
-    arch: process.arch,
-    electron: process.versions.electron,
-    packaged: app.isPackaged,
-  };
-}
 
 /** Only the application window's top frame may invoke the local-file bridge. */
 function assertTrustedFrame(event: IpcMainInvokeEvent): void {
@@ -73,12 +62,8 @@ function createWindow(): void {
   win.webContents.on("will-navigate", (event) => event.preventDefault());
 
   const devUrl = process.env.ELECTRON_RENDERER_URL;
-  const query: Record<string, string> = isolatedTest && process.env.TALLY_LEDGER_UI === "1" ? { ledger: "1" } : {};
-  if (!app.isPackaged && devUrl) {
-    const url = new URL(devUrl);
-    if (query.ledger) url.searchParams.set("ledger", "1");
-    void win.loadURL(url.href);
-  } else void win.loadFile(join(import.meta.dirname, "../renderer/index.html"), { query });
+  if (!app.isPackaged && devUrl) void win.loadURL(devUrl);
+  else void win.loadFile(join(import.meta.dirname, "../renderer/index.html"));
 }
 
 app.whenReady().then(async () => {
@@ -89,8 +74,6 @@ app.whenReady().then(async () => {
     const localDev = !app.isPackaged && /^http:\/\/(127\.0\.0\.1|localhost):17241\//.test(details.url);
     callback({ cancel: remote && !localDev });
   });
-  ipcMain.handle(channels.greet, (_e, name: unknown) => greet(String(name)));
-  ipcMain.handle(channels.platformInfo, () => platformInfo());
   ipcMain.handle(channels.ledgerRead, (event) => { assertTrustedFrame(event); return ledger.read(); });
   ipcMain.handle(channels.ledgerExecute, (event, command: unknown) => { assertTrustedFrame(event); return ledger.execute(command as LedgerCommand); });
   ipcMain.handle(channels.ledgerPreview, (event, source: unknown, mapping: unknown) => { assertTrustedFrame(event); return ledger.previewCsv(source as string, mapping as CsvMapping); });

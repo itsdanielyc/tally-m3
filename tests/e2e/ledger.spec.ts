@@ -11,7 +11,7 @@ const consoleErrors: string[] = [];
 const BANK_ROW_COUNT = 2000;
 
 async function launchLedger(): Promise<void> {
-  application = await electron.launch({ args: ["."], cwd: process.cwd(), env: { ...process.env, TALLY_TEST_MODE: "1", TALLY_LEDGER_UI: "1", TALLY_DATA_DIR: directory, TALLY_TEST_IMPORT_PATH: join(directory, "bank.csv") } });
+  application = await electron.launch({ args: ["."], cwd: process.cwd(), env: { ...process.env, TALLY_TEST_MODE: "1", TALLY_DATA_DIR: directory, TALLY_TEST_IMPORT_PATH: join(directory, "bank.csv") } });
   ledgerWindow = await application.firstWindow();
   ledgerWindow.on("console", (message) => { if (message.type() === "error") consoleErrors.push(message.text()); });
   await ledgerWindow.waitForLoadState("domcontentloaded");
@@ -28,6 +28,8 @@ test.beforeAll(async () => {
 test.afterAll(async () => { await application?.close(); if (directory) await removeTestDirectory(directory); });
 
 test("native ledger uses the contract across a sandboxed IPC bridge", async () => {
+  await expect(ledgerWindow).toHaveTitle("Tally");
+  expect(await application.evaluate(() => ({ os: process.platform, arch: process.arch }))).toEqual({ os: process.platform, arch: process.arch });
   const exposed = await ledgerWindow.evaluate(() => ({ require: typeof (window as unknown as { require?: unknown }).require, process: typeof (window as unknown as { process?: unknown }).process }));
   expect(exposed).toEqual({ require: "undefined", process: "undefined" });
   const snapshot: LedgerSnapshot = await ledgerWindow.evaluate(() => window.electronBridge!.ledger.read());

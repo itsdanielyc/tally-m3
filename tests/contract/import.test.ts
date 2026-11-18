@@ -2,7 +2,7 @@ import { beforeEach, afterEach, describe, expect, it } from "vitest";
 import { join } from "node:path";
 import { LedgerService } from "../../domain/service";
 import { FileLedgerStore } from "../../electron/ledger-store";
-import { createLedgerMock } from "../../src/ledger-api";
+import { createLedgerMock } from "../../src/api";
 import { createTestDirectory, removeTestDirectory } from "../support/directories";
 import type { CsvMapping, LedgerBackend } from "../../contracts/ledger";
 
