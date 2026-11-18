@@ -2,6 +2,8 @@
 <!-- keel:start -->
 This is a prepared, untagged candidate. No GitHub release or published assets exist.
 The fixed v0.1.0 scope is in SLICES.md; the evidence ledger is VERIFICATION.md.
+The immutable candidate SHA and final exact-run attestation are recorded in
+[release-readiness PR #24](https://github.com/itsdanielyc/tally-m3/pull/24).
 
 The release workflow refuses a candidate unless both CI and installer round trips
 passed for that exact commit on Windows x64, macOS arm64 and Linux x64. It builds
