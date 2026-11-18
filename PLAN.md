@@ -13,6 +13,9 @@ The fixed scope and ordering come from SLICES.md. Solo ownership for every slice
 | 6 | Release readiness | 0.1.0 versions agree; changelog and unsigned notes; release gate proven to reject unproven commit; fresh CI and installer round trips green for candidate commit; ledger current; no tag/release | L0-L7 | solo | open |
 
 ## Rulings
+- Ruling: CSV inputs are bounded to 20 MiB and native decoding accepts UTF-8 or BOM-labelled UTF-16 — bound memory use and prevent silent character replacement — other encodings fail with a conversion message before any rows are written.
+- Ruling: CSV duplicates compare against the ledger as it stood at preview time, preserving repeated source rows — exported manually entered identical transactions must round-trip with their multiplicity — accidental repeated rows in a first-time source remain visible as accepted rows.
+- Ruling: two-digit CSV years 00–69 mean 2000–2069 and 70–99 mean 1970–1999 — common bank convention, always shown as four-digit dates in preview — older/future ambiguous files need explicit four-digit years.
 - Ruling: after a slice is locally green, implement its successor on an isolated branch while hosted verification queues — unattended hosted macOS scheduling exceeded execution time — merges and done statuses remain strictly ordered and require the full named Tier 1 proof for each slice; branch management costs more.
 - Ruling: one CI verification job per Tier 1 OS runs L0 through L6 in order — repeated setup and queued macOS jobs dominated wall time — all levels and platforms remain required; execution budgets stay unchanged.
 - Ruling: keep the scaffold UI/tests until the replacement transaction journeys pass on runners, then promote in a separate PR — preserves inherited coverage while replacing the demo — one temporary preview route exists only during slice 1.

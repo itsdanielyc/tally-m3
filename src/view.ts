@@ -20,7 +20,7 @@ export function renderApplication(snapshot: LedgerSnapshot, activeView: ActiveVi
   <main class="workspace" data-geo="workspace">${content}
     <p class="feedback error" role="alert" ${error ? "" : "hidden"}>${escapeHtml(error)}</p>
     <p class="feedback" role="status">${escapeHtml(snapshot.notice)}</p>
-  </main>${renderTransactionDialog(snapshot)}`;
+  </main>${renderTransactionDialog(snapshot)}<input id="csv-file-input" data-testid="csv-file-input" type="file" accept=".csv,text/csv" hidden>`;
 }
 
 function navigationButton(view: ActiveView, label: string, activeView: ActiveView): string {
@@ -32,7 +32,7 @@ function renderTransactions(snapshot: LedgerSnapshot): string {
   const { ledger } = snapshot;
   const categories = new Map(ledger.categories.map((category) => [category.id, category.name]));
   const rows = ledger.transactions.map((transaction) => renderTransactionRow(transaction, ledger.currency, categories)).join("");
-  return `<header class="page-header" data-geo="page-header"><div><p class="eyebrow">THE EVERYDAY LEDGER</p><h1>Transactions</h1><p class="muted">A little clarity for every day.</p></div><button class="primary" data-action="add" type="button">Add transaction</button></header>
+  return `<header class="page-header" data-geo="page-header"><div><p class="eyebrow">THE EVERYDAY LEDGER</p><h1>Transactions</h1><p class="muted">A little clarity for every day.</p></div><div class="header-actions"><button data-action="import" type="button">Import CSV</button><button class="primary" data-action="add" type="button">Add transaction</button></div></header>
     <section class="ledger-panel" data-geo="ledger-panel" aria-label="Transaction ledger">
       <div class="panel-heading"><h2>All transactions <span class="count">${ledger.transactions.length}</span></h2><span class="currency-label">Amounts in ${escapeHtml(ledger.currency)}</span></div>
       ${rows ? `<div class="table-scroll"><table><thead><tr><th scope="col">Date</th><th scope="col">Payee / note</th><th scope="col">Category</th><th scope="col" class="amount">Amount</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead><tbody>${rows}</tbody></table></div>` : `<div class="empty-state" data-geo="empty-state"><div class="empty-icon" aria-hidden="true">≡</div><h3>Your ledger is empty</h3><p>Add your first transaction to start keeping track.</p><button type="button" class="secondary" data-action="add">Add your first transaction</button></div>`}

@@ -1,5 +1,5 @@
 import { _electron as electron, test, expect, type ElectronApplication, type Page } from "@playwright/test";
-import { readFile, mkdir } from "node:fs/promises";
+import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { createTestDirectory, removeTestDirectory } from "../support/directories";
 import { LEDGER_VERSION, type LedgerSnapshot } from "../../contracts/ledger";
@@ -8,9 +8,10 @@ let application: ElectronApplication;
 let ledgerWindow: Page;
 let directory: string;
 const consoleErrors: string[] = [];
+const BANK_ROW_COUNT = 2000;
 
 async function launchLedger(): Promise<void> {
-  application = await electron.launch({ args: ["."], cwd: process.cwd(), env: { ...process.env, TALLY_TEST_MODE: "1", TALLY_DATA_DIR: directory } });
+  application = await electron.launch({ args: ["."], cwd: process.cwd(), env: { ...process.env, TALLY_TEST_MODE: "1", TALLY_DATA_DIR: directory, TALLY_TEST_IMPORT_PATH: join(directory, "bank.csv") } });
   ledgerWindow = await application.firstWindow();
   ledgerWindow.on("console", (message) => { if (message.type() === "error") consoleErrors.push(message.text()); });
   await ledgerWindow.waitForLoadState("domcontentloaded");
@@ -18,7 +19,12 @@ async function launchLedger(): Promise<void> {
 }
 
 test.describe.configure({ mode: "serial" });
-test.beforeAll(async () => { directory = await createTestDirectory("electron-ledger-"); await launchLedger(); });
+test.beforeAll(async () => {
+  directory = await createTestDirectory("electron-ledger-");
+  const rows = ['18/11/2026,Green Market,-12.50', '19/11/2026,Payday,2000.00', ...Array.from({ length: BANK_ROW_COUNT - 2 }, (_, index) => `01/10/2026,Archive ${index},-1.00`)];
+  await writeFile(join(directory, "bank.csv"), `Statement\nGenerated today\nDate,Payee,Amount\n${rows.join("\n")}\n31/02/2026,Rejected,1.00`, "utf8");
+  await launchLedger();
+});
 test.afterAll(async () => { await application?.close(); if (directory) await removeTestDirectory(directory); });
 
 test("native ledger uses the contract across a sandboxed IPC bridge", async () => {
@@ -64,4 +70,22 @@ test("deletes from the real file and logs no console errors", async () => {
   await expect(ledgerWindow.getByText("Your ledger is empty", { exact: true })).toBeVisible();
   expect(JSON.parse(await readFile(join(directory, "ledger.json"), "utf8")).transactions).toEqual([]);
   expect(consoleErrors).toEqual([]);
+});
+
+test("imports 2,000 real CSV rows in under five seconds through the named native-dialog bypass", async () => {
+  await ledgerWindow.getByRole("button", { name: "Import CSV", exact: true }).click();
+  const dialog = ledgerWindow.getByRole("dialog", { name: "Import a bank CSV" });
+  await expect(dialog.getByTestId("import-counts")).toHaveText("2000 accepted · 0 duplicates · 1 rejected");
+  await expect(dialog.getByText(/Line 2004:/)).toBeVisible();
+  await ledgerWindow.screenshot({ path: `artifacts/e2e/import-preview-${process.platform}-${process.arch}.png` });
+  const start = performance.now();
+  await dialog.getByRole("button", { name: "Confirm import" }).click();
+  await expect(ledgerWindow.getByRole("status")).toContainText("Imported 2000 transactions");
+  expect(performance.now() - start).toBeLessThan(5000);
+  expect(JSON.parse(await readFile(join(directory, "ledger.json"), "utf8")).transactions).toHaveLength(BANK_ROW_COUNT);
+  await ledgerWindow.screenshot({ path: `artifacts/e2e/import-${process.platform}-${process.arch}.png` });
+  await ledgerWindow.getByRole("button", { name: "Import CSV", exact: true }).click();
+  await expect(dialog.getByTestId("import-counts")).toHaveText("0 accepted · 2000 duplicates · 1 rejected");
+  await expect(dialog.getByRole("button", { name: "Confirm import" })).toBeDisabled();
+  await dialog.getByRole("button", { name: "Cancel import" }).click();
 });

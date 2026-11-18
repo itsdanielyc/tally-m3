@@ -1,4 +1,5 @@
-import type { Ledger, LedgerCommand, LedgerSnapshot, LedgerStore } from "../contracts/ledger";
+import type { CsvMapping, ImportPreview, Ledger, LedgerCommand, LedgerSnapshot, LedgerStore } from "../contracts/ledger";
+import { prepareImport } from "./csv";
 import { assertCurrency, assertRecord, requiredText, validateLedger, validateTransaction } from "./validation";
 
 /** Serial command boundary shared by native disk persistence and the browser memory mock. */
@@ -6,6 +7,7 @@ export class LedgerService {
   private queue: Promise<unknown> = Promise.resolve();
   private revision = 0;
   private notice = "";
+  private pendingImport: { preview: ImportPreview; revision: number } | null = null;
 
   private constructor(private ledger: Ledger, private readonly store: LedgerStore, private readonly createId: () => string) {}
 
@@ -18,6 +20,14 @@ export class LedgerService {
   async read(): Promise<LedgerSnapshot> {
     await this.queue;
     return this.snapshot();
+  }
+
+  /** Build an immutable receipt against the current revision; preview never writes. */
+  async previewCsv(source: string, mapping: CsvMapping): Promise<ImportPreview> {
+    await this.queue;
+    const preview = { ...prepareImport(source, mapping, this.ledger), token: this.createId() };
+    this.pendingImport = { preview, revision: this.revision };
+    return structuredClone(preview);
   }
 
   /** Enqueue mutations so simultaneous IPC callers cannot overwrite one another. */
@@ -38,6 +48,7 @@ export class LedgerService {
     this.ledger = candidate;
     this.notice = notice;
     this.revision += 1;
+    this.pendingImport = null;
     return this.snapshot();
   }
 
@@ -65,6 +76,14 @@ export class LedgerService {
         assertCurrency(command.currency);
         candidate.currency = command.currency;
         return "Currency saved. Existing amounts keep their minor-unit values.";
+      case "commitImport": {
+        const pending = this.pendingImport;
+        if (!pending || command.token !== pending.preview.token || pending.revision !== this.revision) throw new Error("Import preview is stale or its token is invalid. Preview the file again.");
+        if (pending.preview.accepted.length === 0) throw new Error("No accepted rows to import.");
+        const imported = pending.preview.accepted.map((row) => ({ ...row, id: this.createId() }));
+        candidate.transactions = imported.concat(candidate.transactions);
+        return `Imported ${imported.length} transactions. Skipped ${pending.preview.duplicates} duplicates.`;
+      }
       default:
         throw new Error("Unknown or unavailable command.");
     }

@@ -17,6 +17,22 @@ body.tally-app {
   text-align: left;
 }
 .tally-app *, .tally-app *::before, .tally-app *::after { box-sizing: border-box; }
+.tally-app [hidden] { display: none !important; }
+.tally-app .header-actions { display: flex; gap: 9px; align-items: center; }
+.tally-app .import-dialog { width: 1000px; overflow: hidden; }
+.tally-app .import-scroll { max-height: calc(100vh - 160px); overflow-y: auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; padding-right: 5px; }
+.tally-app .import-dialog h2 { font-size: 20px; }
+.tally-app .mapping-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 16px; }
+.tally-app #csv-preview-button { margin-top: 18px; }
+.tally-app #csv-preview { min-width: 0; padding-top: 4px; }
+.tally-app #csv-preview h3 { font-size: 16px; }
+.tally-app #csv-preview td, .tally-app #csv-preview th { padding: 11px 9px; }
+.tally-app .import-note { white-space: pre-wrap; }
+.tally-app #csv-error { grid-column: 1 / -1; }
+.tally-app .import-counts { margin: 9px 0; padding: 9px; background: #f1f4eb; border-radius: 5px; font-size: 12px; }
+.tally-app .rejections { font-size: 11px; color: #a83f2c; padding-left: 20px; }
+.tally-app .import-dialog details { margin-top: 15px; }
+.tally-app .import-dialog summary { font-size: 12px; cursor: pointer; }
 .tally-app h1, .tally-app h2, .tally-app h3, .tally-app p { margin: 0; }
 .tally-app h1 { font-size: 30px; line-height: 1.3; letter-spacing: -1px; font-weight: 650; }
 .tally-app h2 { font-size: 15px; font-weight: 650; }
@@ -83,6 +99,10 @@ body.tally-app {
 .tally-app .settings-panel p { color: var(--muted); margin-top: 10px; font-size: 12px; }
 .tally-app .settings-panel select { max-width: 210px; margin: 3px 14px 0 0; }
 .tally-app .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
+@media (max-width: 900px) {
+  .tally-app .import-scroll { display: block; }
+  .tally-app #csv-preview { border-top: 1px solid var(--line); margin-top: 22px; padding-top: 18px; }
+}
 @media (max-width: 720px) {
   body.tally-app { display: block; }
   .tally-app .sidebar { min-height: auto; height: auto; position: relative; padding: 14px 20px; border-right: 0; border-bottom: 1px solid var(--line); gap: 12px; }
