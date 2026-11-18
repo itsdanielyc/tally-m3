@@ -1,0 +1,95 @@
+body.tally-app {
+  --canvas: #f7f7f2;
+  --paper: #fff;
+  --ink: #28362f;
+  --muted: #69746c;
+  --line: #e4e8df;
+  --accent: #b64b35;
+  --sidebar-width: 200px;
+  margin: 0;
+  min-width: 360px;
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  background: var(--canvas);
+  color: var(--ink);
+  font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  text-align: left;
+}
+.tally-app *, .tally-app *::before, .tally-app *::after { box-sizing: border-box; }
+.tally-app h1, .tally-app h2, .tally-app h3, .tally-app p { margin: 0; }
+.tally-app h1 { font-size: 30px; line-height: 1.3; letter-spacing: -1px; font-weight: 650; }
+.tally-app h2 { font-size: 15px; font-weight: 650; }
+.tally-app h3 { font-size: 19px; font-weight: 600; }
+.tally-app button, .tally-app input, .tally-app select, .tally-app textarea { font: inherit; }
+.tally-app button { border: 1px solid var(--line); border-radius: 7px; padding: 9px 15px; background: var(--paper); color: var(--ink); cursor: pointer; box-shadow: none; }
+.tally-app button:hover { background: #f0f2ec; border-color: #b9c1b5; }
+.tally-app button:disabled { opacity: .6; cursor: wait; }
+.tally-app button.primary { background: var(--accent); color: white; border-color: var(--accent); font-weight: 600; }
+.tally-app button.primary:hover { background: #9e3e2b; }
+.tally-app :focus-visible { outline: 3px solid #607d67; outline-offset: 3px; }
+.tally-app .sidebar { min-height: 100vh; height: 100vh; position: sticky; top: 0; padding: 30px 20px 22px; border-right: 1px solid var(--line); background: #f0f2e9; display: flex; flex-direction: column; }
+.tally-app .wordmark { display: flex; gap: 9px; align-items: center; color: var(--ink); text-decoration: none; font-size: 24px; font-weight: 700; letter-spacing: -1px; }
+.tally-app .brand-mark { background: var(--accent); color: white; width: 29px; height: 31px; text-align: center; border-radius: 7px; line-height: 28px; font: italic 700 30px Georgia, serif; }
+.tally-app .version { font-size: 10px; color: var(--muted); font-weight: 400; letter-spacing: 0; margin-left: auto; }
+.tally-app .nav-label { color: var(--muted); font-size: 9px; letter-spacing: 1.1px; margin: 38px 8px 13px; font-weight: 600; }
+.tally-app nav { display: flex; flex-direction: column; gap: 6px; }
+.tally-app nav button { text-align: left; background: transparent; border: 0; font-weight: 500; padding: 10px 12px; }
+.tally-app nav button[aria-current] { background: #e2e7d8; color: #344f39; }
+.tally-app .sidebar-foot { margin-top: auto; color: var(--muted); font-size: 11px; line-height: 1.8; padding-left: 7px; }
+.tally-app .sidebar-foot small { display: inline-block; margin-left: 13px; font-size: 10px; }
+.tally-app .local-dot { width: 6px; height: 6px; background: #5d7a54; border-radius: 50%; display: inline-block; margin-right: 5px; }
+.tally-app .workspace { padding: 42px 36px; min-width: 0; }
+.tally-app .page-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 32px; }
+.tally-app .eyebrow { font-size: 10px; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 8px; font-weight: 600; }
+.tally-app .muted { color: var(--muted); margin-top: 7px; font-size: 13px; }
+.tally-app .ledger-panel, .tally-app .settings-panel { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; box-shadow: 0 2px 3px #253c2110; }
+.tally-app .panel-heading { padding: 18px 22px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+.tally-app .count { background: #f0f2eb; color: var(--muted); border: 1px solid var(--line); border-radius: 5px; font-size: 10px; padding: 2px 6px; margin-left: 5px; }
+.tally-app .currency-label { font-size: 11px; color: var(--muted); }
+.tally-app .empty-state { text-align: center; padding: 66px 20px 70px; }
+.tally-app .empty-state p { color: var(--muted); font-size: 12px; margin: 9px 0 22px; }
+.tally-app .empty-icon { background: #f1f3ed; border: 1px solid var(--line); border-radius: 11px; color: #85917c; width: 48px; height: 48px; font-size: 32px; line-height: 39px; margin: 0 auto 19px; }
+.tally-app .secondary { color: #47583f; background: #f6f7f2; }
+.tally-app .panel-footer { border-top: 1px solid var(--line); padding: 13px 22px; display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); background: #fcfcf9; gap: 10px; }
+.tally-app .table-scroll { overflow-x: auto; }
+.tally-app table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.tally-app th { text-align: left; color: var(--muted); font-size: 10px; font-weight: 500; padding: 11px 16px; border-bottom: 1px solid var(--line); background: #fcfcf9; white-space: nowrap; }
+.tally-app td { border-bottom: 1px solid var(--line); padding: 16px; vertical-align: middle; }
+.tally-app tr:last-child td { border-bottom: 0; }
+.tally-app .date { white-space: nowrap; color: var(--muted); font-size: 11px; }
+.tally-app .amount { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tally-app td.amount { font-weight: 600; }
+.tally-app .income { color: #39713f; }
+.tally-app .row-note { display: block; color: var(--muted); margin-top: 4px; white-space: pre-wrap; max-width: 250px; overflow-wrap: anywhere; }
+.tally-app .category-chip { font-size: 10px; border: 1px solid var(--line); border-radius: 5px; padding: 3px 7px; color: var(--muted); white-space: nowrap; }
+.tally-app .row-actions { white-space: nowrap; }
+.tally-app .row-actions button { padding: 4px 7px; border: 0; font-size: 10px; background: transparent; color: var(--muted); }
+.tally-app .row-actions button:hover { color: var(--accent); background: #fbf1ed; }
+.tally-app .feedback { font-size: 12px; color: #47603c; margin-top: 18px; min-height: 18px; }
+.tally-app .error { color: #a83f2c; font-size: 12px; }
+.tally-app dialog { margin: auto; width: 430px; max-width: calc(100vw - 32px); max-height: calc(100vh - 32px); padding: 25px; border: 1px solid #d3d9ca; border-radius: 12px; color: var(--ink); background: var(--paper); box-shadow: 0 20px 80px #22332030; }
+.tally-app dialog::backdrop { background: #26362852; }
+.tally-app .dialog-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.tally-app .dialog-heading h2 { font-size: 20px; }
+.tally-app .dialog-heading button { border: 0; padding: 0 8px; font-size: 24px; }
+.tally-app label { display: block; font-size: 12px; font-weight: 600; margin: 14px 0 5px; }
+.tally-app .optional { color: var(--muted); font-weight: 400; }
+.tally-app input, .tally-app select, .tally-app textarea { width: 100%; padding: 9px 10px; border: 1px solid #cbd3c5; border-radius: 6px; color: var(--ink); background: white; box-shadow: none; }
+.tally-app textarea { resize: vertical; }
+.tally-app form small { display: block; margin-top: 5px; font-size: 10px; color: var(--muted); }
+.tally-app .dialog-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 22px; }
+.tally-app .settings-panel { padding: 26px; max-width: 600px; }
+.tally-app .settings-panel p { color: var(--muted); margin-top: 10px; font-size: 12px; }
+.tally-app .settings-panel select { max-width: 210px; margin: 3px 14px 0 0; }
+.tally-app .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
+@media (max-width: 720px) {
+  body.tally-app { display: block; }
+  .tally-app .sidebar { min-height: auto; height: auto; position: relative; padding: 14px 20px; border-right: 0; border-bottom: 1px solid var(--line); gap: 12px; }
+  .tally-app .nav-label, .tally-app .sidebar-foot { display: none; }
+  .tally-app nav { flex-direction: row; flex-wrap: wrap; }
+  .tally-app .wordmark { max-width: 160px; }
+  .tally-app .workspace { padding: 26px 18px; }
+  .tally-app .page-header { flex-wrap: wrap; gap: 20px; }
+  .tally-app .panel-footer { flex-direction: column; }
+}

@@ -29,6 +29,18 @@ Read cold, mid-task. Every command below is real for this repository.
 
 ## Drive
 
+- Transaction journeys: `npm run build` then `npx playwright test -c playwright.e2e.config.ts tests/e2e/ledger.spec.ts`.
+  The suite uses `TALLY_TEST_MODE=1`, `TALLY_DATA_DIR=<repo>/.cache/<unique-dir>` and,
+  during the slice 1 replacement period, `TALLY_LEDGER_UI=1` to select the preview UI.
+  Test paths outside this repository's `.cache` are rejected. Never launch a data-writing
+  test against the normal application-data directory.
+- Browser preview during replacement: `http://127.0.0.1:17241/?ledger=1`.
+- L1 `npm run test:unit`; L2 `npm run test:contract`; L3 `npm run test:integration`.
+- The transaction suite adds/edits, closes and restarts Electron, checks exact file bytes,
+  deletes, verifies renderer Node globals are absent and checks malformed money over IPC.
+- Reports use separate `test-results/ui` and `test-results/e2e` folders. Wait for the
+  document to load before asserting app readiness; do not compensate with a larger timeout.
+
 - Real shell: `npm run test:e2e` launches `out/` through Playwright and
   checks the badge, the greeting round trip and the console; add journeys
   under `tests/e2e/`.

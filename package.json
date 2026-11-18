@@ -15,12 +15,14 @@
     "build": "npm run typecheck && electron-vite build",
     "start": "electron-vite preview",
     "package": "npm run build && electron-builder --publish never",
-    "test:unit": "vitest run",
+    "test:unit": "vitest run tests/unit",
     "test:ui": "playwright test",
     "test:ui:update": "cross-env UPDATE_SNAPSHOTS=1 playwright test --update-snapshots=all",
     "test:e2e": "playwright test -c playwright.e2e.config.ts",
     "contact-sheet": "node scripts/contact-sheet.mjs",
-    "triage": "node scripts/triage.mjs"
+    "triage": "node scripts/triage.mjs",
+    "test:contract": "vitest run tests/contract",
+    "test:integration": "vitest run tests/integration"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.0",
