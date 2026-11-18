@@ -82,5 +82,5 @@ export function prepareImport(source: string, mapping: CsvMapping, ledger: Ledge
       accepted.push(transaction);
     } catch (error) { rejected.push({ line: record.line, reason: error instanceof Error ? error.message : String(error) }); }
   }
-  return { accepted, rejected, duplicates, totalRows: table.rows.length };
+  return { accepted, rejected, duplicates, totalRows: table.rows.length, newCategories: [] };
 }
