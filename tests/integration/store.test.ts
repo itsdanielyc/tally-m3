@@ -46,4 +46,14 @@ describe("real atomic ledger I/O", () => {
     await expect(new FileLedgerStore(join(path, "ledger.json")).save(createEmptyLedger())).rejects.toThrow();
     expect(await readFile(path, "utf8")).toBe("keep me");
   });
+  it.each([{}, { categoryId: null, note: null }])("opens nonempty version zero optional fields %j without writing until a save", async (optional) => {
+    const source = JSON.stringify({ version: 0, transactions: [{ id: "legacy", date: "2025-12-31", payee: "Old shop", amount: -123, ...optional }] });
+    await writeFile(path, source);
+    const store = new FileLedgerStore(path);
+    expect((await store.load()).transactions[0]).toEqual({ id: "legacy", date: "2025-12-31", payee: "Old shop", amount: -123, categoryId: null, note: "" });
+    expect(await readFile(path, "utf8")).toBe(source);
+    const service = await LedgerService.open(store); await service.execute({ type: "setCurrency", currency: "USD" });
+    expect((await new FileLedgerStore(path).load()).transactions[0]?.amount).toBe(-123);
+    expect(JSON.parse(await readFile(path, "utf8")).version).toBe(1);
+  });
 });

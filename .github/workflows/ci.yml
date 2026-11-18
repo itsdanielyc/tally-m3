@@ -28,6 +28,8 @@ jobs:
         if: runner.os == 'macOS'
         run: node -e "if(process.arch!=='arm64')throw Error('Tier 1 requires macOS arm64')"
       - run: npm ci
+      - name: Release version agreement
+        run: npm run check:versions
       - name: L0 types
         run: npm run typecheck
       - name: L1 domain

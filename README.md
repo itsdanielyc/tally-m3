@@ -11,3 +11,55 @@ npm run test:ui        # Playwright, chromium, against the labelled mock
 npm run build          # main, preload and renderer into out/ for the real-shell suite
 npm run test:e2e       # Playwright's Electron launcher against the built app
 ```
+
+<!-- keel:start -->
+## Using Tally
+
+Tally is an offline household expense ledger. The desktop build is the product;
+the browser build is a visibly labelled in-memory mock for development and tests.
+
+Add a date, payee and signed amount: negative for spending, positive for income.
+Category and note are optional. Settings chooses one two-decimal currency; changing
+it relabels existing minor-unit values and does not convert money.
+
+Import CSV opens a mapping/preview dialog. Choose the date order and decimal
+separator, review accepted rows, stored duplicates and rejected physical lines,
+then confirm once. UTF-8 and BOM-labelled UTF-16 files up to 20 MiB are supported.
+Duplicate keys use date, amount and trimmed case-insensitive payee. Repeated rows
+within one source remain distinct, so an exported ledger preserves multiplicity.
+
+Categories can be renamed, deleted or merged. Deletion leaves transactions
+uncategorised and removes linked rules/budgets. Merge moves every reference and
+adds monthly budgets. Payee rules match literal contains text, ignoring case;
+the first matching rule wins and manual categories stay intact.
+
+Summary shows a chosen month's exact income, spending and category net totals.
+Credits/refunds offset category budget use. Budgets are independent by month;
+unset differs from zero. Search/filter bounds are inclusive and use signed amounts.
+The list pages 50 rows; Export CSV includes the entire matching result set.
+
+Undo restores the most recent delete, merge or import once. A subsequent changed
+write clears it. Reads, previews, exports, failed writes and no-op saves preserve it.
+History is session-only, but the undo result is saved atomically.
+
+The main process owns `ledger.json` in Electron's application-data directory.
+Back it up while Tally is closed. Temporary `.pending` files are never opened as
+the ledger. Corrupt or unsupported files fail without being replaced. Schema zero
+opens with missing optional fields filled in memory, and is migrated on the next save.
+
+## Development and proof
+
+`npm run typecheck`, `npm run test:unit`, `npm run test:contract`, and
+`npm run test:integration` are the fast checks. `npm run test:ui` drives Chromium
+against the mock; `npm run build` then `npm run test:e2e` drives actual Electron
+against isolated `.cache` data. `npm run package` creates unsigned bundles.
+
+Runner-only PNG baselines come from `snapshots`; every OS contributes only its own
+pixels. `ci` runs L0-L6 on all Tier 1 platforms; `installers` performs L7 round trips.
+`npm run check:versions` detects drift. `npm run release:gate -- <commit>` reads exact
+CI/installer evidence and never creates tags or releases. A manual `release` workflow
+rebuilds and checks bundles while its publish job remains disabled.
+
+See PLAN.md for fixed-slice status, VERIFICATION.md for evidence, RELEASE-NOTES.md
+for unsigned warnings and limitations, and AGENTS.md for the repository map.
+<!-- keel:end -->

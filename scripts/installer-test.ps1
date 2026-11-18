@@ -19,13 +19,14 @@ function Find-Installed {
 function Stop-Installed($dir) {
   # Electron starts helper processes (GPU, renderer); stop every process that
   # runs from the install folder, and nothing else.
+  $installPrefix = [IO.Path]::GetFullPath($dir).TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
   Get-Process -ErrorAction SilentlyContinue |
-    Where-Object { $_.Path -and $_.Path.StartsWith($dir, [StringComparison]::OrdinalIgnoreCase) } |
+    Where-Object { $_.Path -and $_.Path.StartsWith($installPrefix, [StringComparison]::OrdinalIgnoreCase) } |
     Stop-Process -Force -ErrorAction SilentlyContinue
 }
 
 function Smoke-Launch($exe) {
-  $p = Start-Process -FilePath $exe -PassThru
+  $p = Start-Process -FilePath $exe -PassThru -WindowStyle Hidden
   Start-Sleep -Seconds 6
   $alive = -not $p.HasExited
   Stop-Installed (Split-Path $exe)
@@ -35,7 +36,7 @@ function Smoke-Launch($exe) {
 
 $setup = Get-ChildItem "$bundle\*-setup.exe" | Select-Object -First 1
 Assert ($null -ne $setup) "NSIS installer exists"
-$proc = Start-Process -FilePath $setup.FullName -ArgumentList "/S" -Wait -PassThru
+$proc = Start-Process -FilePath $setup.FullName -ArgumentList "/S" -Wait -PassThru -WindowStyle Hidden
 Assert ($proc.ExitCode -eq 0) "NSIS silent install exit code 0"
 $exe = Find-Installed
 Assert ($null -ne $exe) "tally.exe found after NSIS install"

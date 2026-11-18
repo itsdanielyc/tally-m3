@@ -25,7 +25,13 @@ export class FileLedgerStore implements LedgerStore {
     try { data = JSON.parse(source); }
     catch { throw new Error("Ledger JSON is unreadable. The existing file has been preserved."); }
     assertRecord(data, "Ledger schema");
-    if (data.version === 0) data = { ...createEmptyLedger(), ...data, version: LEDGER_VERSION };
+    if (data.version === 0) {
+      const transactions = Array.isArray(data.transactions) ? data.transactions.map((row: unknown) => {
+        assertRecord(row, "Legacy ledger transaction");
+        return { ...row, categoryId: row.categoryId ?? null, note: row.note ?? "" };
+      }) : data.transactions;
+      data = { ...createEmptyLedger(), ...data, transactions, version: LEDGER_VERSION };
+    }
     try { return validateLedger(data); }
     catch (error) { throw new Error(`Ledger schema cannot be opened: ${error instanceof Error ? error.message : String(error)}`); }
   }
