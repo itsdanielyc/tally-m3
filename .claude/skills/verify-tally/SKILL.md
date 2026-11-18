@@ -40,6 +40,11 @@ Read cold, mid-task. Every command below is real for this repository.
   deletes, verifies renderer Node globals are absent and checks malformed money over IPC.
 - Reports use separate `test-results/ui` and `test-results/e2e` folders. Wait for the
   document to load before asserting app readiness; do not compensate with a larger timeout.
+- CSV import uses the named native-dialog bypass `TALLY_TEST_IMPORT_PATH`, enabled
+  only in isolated unpackaged test launches and bounded to `<repo>/.cache/`.
+  The L6 journey reads an actual 2,000-row file, reports its rejected physical line,
+  confirms in under five seconds and previews the same file again as duplicates.
+  Native decoding accepts UTF-8 and BOM-labelled UTF-16; malformed text fails before import.
 
 - Real shell: `npm run test:e2e` launches `out/` through Playwright and
   checks the badge, the greeting round trip and the console; add journeys

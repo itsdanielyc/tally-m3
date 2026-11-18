@@ -16,6 +16,8 @@ the short design log required by keel-build; they do not change PRODUCT.md.
 - Transaction editing uses one reusable form. Category selection and note are optional.
 - CSV import shows detected delimiter/header, editable mapping/date order, then a
   preview, duplicate count and rejected row line/reason. Confirmation is a separate action.
+- Wide import dialogs place mapping and preview beside each other after visual QA
+  showed the stacked form hid the first rows; narrow windows retain a scrollable stack.
 - Monthly budgets show simple progress bars plus exact textual amounts left/over.
 - Search/filter controls are grouped together; export clearly applies to shown rows.
 - Undo is one visible action with the operation named. Any intervening mutation clears it.

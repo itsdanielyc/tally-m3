@@ -3,6 +3,7 @@ import { ledgerBackend } from "./ledger-api";
 import { renderApplication, type ActiveView } from "./view";
 import { formatMinorUnits, parseMinorUnits } from "../domain/money";
 import type { LedgerCommand, LedgerSnapshot } from "../contracts/ledger";
+import { openImportDialog } from "./import-dialog";
 
 let snapshot: LedgerSnapshot;
 let activeView: ActiveView = "transactions";
@@ -24,6 +25,27 @@ function render(): void {
   document.getElementById("settings-form")?.addEventListener("submit", (event) => {
     event.preventDefault(); void execute({ type: "setCurrency", currency: element<HTMLSelectElement>("currency").value });
   });
+  document.getElementById("csv-file-input")?.addEventListener("change", (event) => {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = "";
+    if (file) void file.text().then(showImport).catch(reportImportError);
+  });
+}
+
+function showImport(source: string): void {
+  try { openImportDialog(source, snapshot, ledgerBackend, (next) => { snapshot = next; activeView = "transactions"; errorMessage = ""; render(); }); }
+  catch (error) { reportImportError(error); }
+}
+
+function reportImportError(error: unknown): void { errorMessage = describeError(error); render(); }
+
+async function chooseImportFile(): Promise<void> {
+  if (ledgerBackend.kind === "mock") { element<HTMLInputElement>("csv-file-input").click(); return; }
+  busy = true;
+  try { const source = await ledgerBackend.openCsv(); if (source !== null) showImport(source); }
+  catch (error) { reportImportError(error); }
+  finally { busy = false; }
 }
 
 /** Mutations retain the previous view on error and publish only the confirmed snapshot. */
@@ -81,6 +103,7 @@ document.body.addEventListener("click", (event) => {
     case "add": openTransaction(); break;
     case "edit": openTransaction(target.dataset.id); break;
     case "delete": void execute({ type: "deleteTransaction", id: target.dataset.id! }); break;
+    case "import": void chooseImportFile(); break;
     case "cancel-transaction": element<HTMLDialogElement>("transaction-dialog").close(); break;
   }
 });

@@ -2,20 +2,28 @@
 // template. It answers the bridge's IPC calls. The greeting is implemented
 // here on its own, not imported from contracts/, so the real-shell suite
 // (tests/e2e) is what holds it to the contract.
-import { app, BrowserWindow, ipcMain, dialog, session } from "electron";
+import { app, BrowserWindow, ipcMain, dialog, session, type IpcMainInvokeEvent } from "electron";
 import { mkdirSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join, resolve, sep } from "node:path";
 import { channels, type PlatformInfo } from "./bridge";
-import type { LedgerCommand } from "../contracts/ledger";
+import type { CsvMapping, LedgerCommand } from "../contracts/ledger";
 import { LedgerService } from "../domain/service";
 import { FileLedgerStore } from "./ledger-store";
+import { readCsvSource } from "./csv-io";
 
 const WINDOW_SIZE = { width: 1120, height: 780, minWidth: 640, minHeight: 500 };
 const isolatedTest = !app.isPackaged && process.env.TALLY_TEST_MODE === "1";
+const TEST_ROOT = resolve(process.cwd(), ".cache");
+
+/** Keep all test overrides inside the repository; normal app paths are owned by native dialogs. */
+function isolatedPath(source: string): string {
+  const path = resolve(source);
+  if (!path.startsWith(`${TEST_ROOT}${sep}`)) throw new Error("Test paths must stay inside this repository's .cache directory.");
+  return path;
+}
+
 if (isolatedTest) {
-  const testDirectory = resolve(process.env.TALLY_DATA_DIR ?? join(process.cwd(), ".cache", "electron-data"));
-  const cacheRoot = `${resolve(process.cwd(), ".cache")}`;
-  if (!testDirectory.startsWith(`${cacheRoot}/`) && !testDirectory.startsWith(`${cacheRoot}\\`)) throw new Error("Test data must stay inside this repository's .cache directory.");
+  const testDirectory = isolatedPath(process.env.TALLY_DATA_DIR ?? join(TEST_ROOT, "electron-data"));
   mkdirSync(testDirectory, { recursive: true });
   app.setPath("userData", testDirectory);
 }
@@ -33,6 +41,19 @@ function platformInfo(): PlatformInfo {
     electron: process.versions.electron,
     packaged: app.isPackaged,
   };
+}
+
+/** Only the application window's top frame may invoke the local-file bridge. */
+function assertTrustedFrame(event: IpcMainInvokeEvent): void {
+  if (!event.senderFrame || event.senderFrame !== event.sender.mainFrame) throw new Error("Untrusted ledger frame.");
+}
+
+async function openCsvFile(): Promise<string | null> {
+  const preset = isolatedTest ? process.env.TALLY_TEST_IMPORT_PATH : undefined;
+  if (preset) return readCsvSource(isolatedPath(preset));
+  const selection = await dialog.showOpenDialog({ title: "Import a bank CSV", filters: [{ name: "CSV files", extensions: ["csv"] }], properties: ["openFile"] });
+  if (selection.canceled || !selection.filePaths[0]) return null;
+  return readCsvSource(selection.filePaths[0]);
 }
 
 function createWindow(): void {
@@ -70,8 +91,10 @@ app.whenReady().then(async () => {
   });
   ipcMain.handle(channels.greet, (_e, name: unknown) => greet(String(name)));
   ipcMain.handle(channels.platformInfo, () => platformInfo());
-  ipcMain.handle(channels.ledgerRead, () => ledger.read());
-  ipcMain.handle(channels.ledgerExecute, (_event, command: unknown) => ledger.execute(command as LedgerCommand));
+  ipcMain.handle(channels.ledgerRead, (event) => { assertTrustedFrame(event); return ledger.read(); });
+  ipcMain.handle(channels.ledgerExecute, (event, command: unknown) => { assertTrustedFrame(event); return ledger.execute(command as LedgerCommand); });
+  ipcMain.handle(channels.ledgerPreview, (event, source: unknown, mapping: unknown) => { assertTrustedFrame(event); return ledger.previewCsv(source as string, mapping as CsvMapping); });
+  ipcMain.handle(channels.ledgerOpenCsv, (event) => { assertTrustedFrame(event); return openCsvFile(); });
   createWindow();
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

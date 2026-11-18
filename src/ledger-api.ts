@@ -10,7 +10,7 @@ export function createLedgerMock(store: LedgerStore = new MemoryLedgerStore(), c
     kind: "mock",
     read: async () => (await service).read(),
     execute: async (command) => (await service).execute(command),
-    previewCsv: async () => { throw new Error("CSV import is not available yet."); },
+    previewCsv: async (source, mapping) => (await service).previewCsv(source, mapping),
     openCsv: async () => null,
     exportCsv: async () => false,
   };
