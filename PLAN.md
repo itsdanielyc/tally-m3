@@ -4,7 +4,7 @@ The fixed scope and ordering come from SLICES.md. Solo ownership for every slice
 
 | # | Slice | Done when | Levels | Owner | Status |
 |---|---|---|---|---|---|
-| 0 | Scaffold | electron-web scaffold, CI and installers green on every Tier 1 platform; runner baselines reviewed and first ledger rows recorded | L0-L2, L4-L7 | solo | open |
+| 0 | Scaffold | electron-web scaffold, CI and installers green on every Tier 1 platform; runner baselines reviewed and first ledger rows recorded | L0-L2, L4-L7 | solo | done: CI 44354583567, installers 44354583315 |
 | 1 | Record transactions | Validation and whole-minor-unit money tests; memory/disk conformance; atomic-write and migration tests; add/edit/delete UI; real-shell restart retains the exact ledger; Tier 1 green | L0-L6 | solo | open |
 | 2 | Import a bank CSV | Delimiter/header/date/money mapping fixtures, rejected line reasons, within-file/existing duplicates, 2,000 rows <5s; atomic all-or-none import; preview UI and native-dialog-bypass real-shell journey; Tier 1 green | L0-L6 | solo | open |
 | 3 | Categories and rules | Category create/rename/delete/merge semantics and ordered contains rules tested, UI manages them and applies to uncategorised/imported rows; Electron journey; Tier 1 green | L0-L6 | solo | open |
@@ -13,6 +13,10 @@ The fixed scope and ordering come from SLICES.md. Solo ownership for every slice
 | 6 | Release readiness | 0.1.0 versions agree; changelog and unsigned notes; release gate proven to reject unproven commit; fresh CI and installer round trips green for candidate commit; ledger current; no tag/release | L0-L7 | solo | open |
 
 ## Rulings
+- Ruling: one CI verification job per Tier 1 OS runs L0 through L6 in order — repeated setup and queued macOS jobs dominated wall time — all levels and platforms remain required; execution budgets stay unchanged.
+- Ruling: keep the scaffold UI/tests until the replacement transaction journeys pass on runners, then promote in a separate PR — preserves inherited coverage while replacing the demo — one temporary preview route exists only during slice 1.
+- Ruling: treat isolated Windows Playwright worker fast-fail as an L6 harness observation, issue #9 — 30 subsequent serial repeats passed 90/90 without changing assertions/timeouts — cause remains unverified; one environmental L6 retry is the existing Keel allowance.
+- Ruling: implement slice 1 only on an isolated branch while macOS scaffold jobs await hosted capacity — main remains the scaffold and no slice can be marked done without its complete Tier 1 proof — this defers the scaffold skill's before-feature scheduling gate, not any definition of done; feature merge waits for scaffold proof.
 - Ruling: use `com.example.tally` as the unsigned bundle identifier — no organization identifier supplied — changing it later may change install identity.
 - Ruling: default currency GBP, configurable as a three-letter currency with two minor digits — single-currency UK-context household ledger — non-two-digit currencies require a later scope decision.
 - Ruling: first matching payee rule wins, case-insensitive contains; duplicate payees use trimmed case-folded text — deterministic and useful bank matching — differently cased payees are considered duplicates.
