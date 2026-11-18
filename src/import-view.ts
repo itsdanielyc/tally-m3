@@ -1,6 +1,6 @@
-import type { CsvMapping, CsvTable, ImportPreview } from "../contracts/ledger";
+import type { Category, CsvMapping, CsvTable, ImportPreview } from "../contracts/ledger";
 import { formatMinorUnits } from "../domain/money";
-import { escapeHtml } from "./view";
+import { escapeHtml } from "./html";
 const PREVIEW_ROW_LIMIT = 5;
 
 /** Render the mapping separately from results so changes cannot silently confirm an older preview. */
@@ -23,11 +23,13 @@ function columnSelect(id: string, label: string, headers: readonly string[], sel
 }
 
 /** Render every rejection with its physical line; preview only the first few accepted rows. O(n) space/time. */
-export function renderImportPreview(preview: ImportPreview, currency: string): string {
+export function renderImportPreview(preview: ImportPreview, currency: string, categories: readonly Category[] = []): string {
   const shown = preview.accepted.slice(0, PREVIEW_ROW_LIMIT);
+  const categoryNames = new Map(categories.map((category) => [category.id, category.name]));
+  const showCategories = preview.accepted.some((row) => row.categoryId !== null);
   const showNotes = shown.some((row) => row.note);
-  const rows = shown.map((row) => `<tr><td>${row.date}</td><td>${escapeHtml(row.payee)}</td><td class="amount">${escapeHtml(currency)} ${formatMinorUnits(row.amount)}</td>${showNotes ? `<td class="import-note">${escapeHtml(row.note)}</td>` : ""}</tr>`).join("");
+  const rows = shown.map((row) => `<tr><td>${row.date}</td><td>${escapeHtml(row.payee)}</td><td class="amount">${escapeHtml(currency)} ${formatMinorUnits(row.amount)}</td>${showCategories ? `<td>${escapeHtml(row.categoryId ? categoryNames.get(row.categoryId) ?? "Missing category" : "Uncategorised")}</td>` : ""}${showNotes ? `<td class="import-note">${escapeHtml(row.note)}</td>` : ""}</tr>`).join("");
   return `<h3>Review before importing</h3><p data-testid="import-counts" class="import-counts">${preview.accepted.length} accepted · ${preview.duplicates} duplicates · ${preview.rejected.length} rejected</p>
-    ${rows ? `<p class="muted">First ${shown.length} accepted rows of ${preview.totalRows} source rows.</p><div class="table-scroll"><table><thead><tr><th>Date</th><th>Payee</th><th class="amount">Amount</th>${showNotes ? "<th>Note</th>" : ""}</tr></thead><tbody>${rows}</tbody></table></div>` : `<p class="muted">No new readable transactions to import.</p>`}
+    ${rows ? `<p class="muted">First ${shown.length} accepted rows of ${preview.totalRows} source rows.</p><div class="table-scroll"><table><thead><tr><th>Date</th><th>Payee</th><th class="amount">Amount</th>${showCategories ? "<th>Category</th>" : ""}${showNotes ? "<th>Note</th>" : ""}</tr></thead><tbody>${rows}</tbody></table></div>` : `<p class="muted">No new readable transactions to import.</p>`}
     ${preview.rejected.length ? `<details open><summary>Rows with problems (${preview.rejected.length})</summary><ul class="rejections">${preview.rejected.map((row) => `<li>Line ${row.line}: ${escapeHtml(row.reason)}</li>`).join("")}</ul></details>` : ""}`;
 }

@@ -10,5 +10,5 @@
     "noEmit": true,
     "strict": true
   },
-  "include": ["./**/*.ts", "../playwright.config.ts", "../playwright.e2e.config.ts", "../vitest.config.ts", "../vite.config.ts"]
+  "include": ["./**/*.ts", "../scripts/**/*.mts", "../playwright.config.ts", "../playwright.e2e.config.ts", "../vitest.config.ts", "../vite.config.ts"]
 }

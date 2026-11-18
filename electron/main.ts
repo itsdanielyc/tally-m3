@@ -1,7 +1,4 @@
-// The main process: the "backend" of this app, the way Rust is in the Tauri
-// template. It answers the bridge's IPC calls. The greeting is implemented
-// here on its own, not imported from contracts/, so the real-shell suite
-// (tests/e2e) is what holds it to the contract.
+/** Native composition root: one ledger, sandboxed windows, file dialogs and validated IPC. */
 import { app, BrowserWindow, ipcMain, dialog, session, type IpcMainInvokeEvent } from "electron";
 import { mkdirSync } from "node:fs";
 import { join, resolve, sep } from "node:path";

@@ -61,7 +61,7 @@ export function validateLedger(value: unknown): Ledger {
     assertRecord(rule, "Rule");
     const id = requiredText(rule.id, "Rule ID");
     if (ruleIds.has(id)) throw new Error("Ledger has duplicate rule IDs.");
-    ruleIds.add(id); requiredText(rule.contains, "Rule text");
+    ruleIds.add(id); requiredText(rule.contains, "Rule text", MAX_PAYEE_LENGTH);
     if (typeof rule.categoryId !== "string" || !categoryIds.has(rule.categoryId)) throw new Error("Ledger rule category not found.");
   }
   for (const [month, budgets] of Object.entries(value.budgets)) {

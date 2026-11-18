@@ -13,6 +13,9 @@ The fixed scope and ordering come from SLICES.md. Solo ownership for every slice
 | 6 | Release readiness | 0.1.0 versions agree; changelog and unsigned notes; release gate proven to reject unproven commit; fresh CI and installer round trips green for candidate commit; ledger current; no tag/release | L0-L7 | solo | open |
 
 ## Rulings
+- Ruling: category deletion removes its rules and budgets and leaves its transactions uncategorised; merge adds per-month budgets and reassigns every reference — prevent dangling IDs — deletion loses those settings until the slice 5 undo is available.
+- Ruling: Uncategorised is reserved, category names and duplicate rule needles compare without case using Unicode NFC, first-created matching rule wins — keep null state and rule priority unambiguous — rule reordering is outside the fixed scope.
+- Ruling: snapshot artifacts contain only the capturing OS's PNGs; the first selected runner owns shared text/geometry — full artifact sets carried stale other-OS PNGs that overwrote fresh captures — two integration tests and an ownership mutation guard the merge.
 - Ruling: CSV inputs are bounded to 20 MiB and native decoding accepts UTF-8 or BOM-labelled UTF-16 — bound memory use and prevent silent character replacement — other encodings fail with a conversion message before any rows are written.
 - Ruling: CSV duplicates compare against the ledger as it stood at preview time, preserving repeated source rows — exported manually entered identical transactions must round-trip with their multiplicity — accidental repeated rows in a first-time source remain visible as accepted rows.
 - Ruling: two-digit CSV years 00–69 mean 2000–2069 and 70–99 mean 1970–1999 — common bank convention, always shown as four-digit dates in preview — older/future ambiguous files need explicit four-digit years.

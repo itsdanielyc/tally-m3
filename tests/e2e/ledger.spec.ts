@@ -89,3 +89,26 @@ test("imports 2,000 real CSV rows in under five seconds through the named native
   await expect(dialog.getByRole("button", { name: "Confirm import" })).toBeDisabled();
   await dialog.getByRole("button", { name: "Cancel import" }).click();
 });
+
+test("native category rules apply to existing and imported uncategorised rows", async () => {
+  await ledgerWindow.getByRole("button", { name: "Categories", exact: true }).click();
+  await ledgerWindow.getByLabel("Category name", { exact: true }).fill("Food");
+  await ledgerWindow.getByRole("button", { name: "Add category", exact: true }).click();
+  await ledgerWindow.getByLabel("Rule contains", { exact: true }).fill("green");
+  await ledgerWindow.getByLabel("Rule category").selectOption({ label: "Food" });
+  await ledgerWindow.getByRole("button", { name: "Save rule", exact: true }).click();
+  await ledgerWindow.getByRole("button", { name: "Apply rules to uncategorised" }).click();
+  await expect(ledgerWindow.getByRole("status")).toContainText("Applied rules to 1 transaction");
+  await ledgerWindow.screenshot({ path: `artifacts/e2e/categories-${process.platform}-${process.arch}.png` });
+  await ledgerWindow.getByRole("button", { name: "Transactions", exact: true }).click();
+  await expect(ledgerWindow.getByRole("row").filter({ hasText: "Green Market" }).getByRole("cell", { name: "Food", exact: true })).toBeVisible();
+  await writeFile(join(directory, "bank.csv"), 'Date,Payee,Amount\n20/11/2026,Green Market,-2.50', "utf8");
+  await ledgerWindow.getByRole("button", { name: "Import CSV", exact: true }).click();
+  const dialog = ledgerWindow.getByRole("dialog", { name: "Import a bank CSV" });
+  await expect(dialog.getByRole("cell", { name: "Food", exact: true })).toBeVisible();
+  await dialog.getByRole("button", { name: "Confirm import" }).click();
+  const snapshot = await ledgerWindow.evaluate(() => window.electronBridge!.ledger.read());
+  const imported = snapshot.ledger.transactions.find((row) => row.date === "2026-11-20");
+  expect(snapshot.ledger.categories.find((category) => category.id === imported?.categoryId)?.name).toBe("Food");
+  expect(consoleErrors).toEqual([]);
+});

@@ -1,5 +1,6 @@
 import type { CsvMapping, ImportPreview, Ledger, LedgerCommand, LedgerSnapshot, LedgerStore } from "../contracts/ledger";
 import { prepareImport } from "./csv";
+import { applyPayeeRules, saveCategory, deleteCategory, mergeCategory, saveRule, deleteRule } from "./categories";
 import { assertCurrency, assertRecord, requiredText, validateLedger, validateTransaction } from "./validation";
 
 /** Serial command boundary shared by native disk persistence and the browser memory mock. */
@@ -26,6 +27,7 @@ export class LedgerService {
   async previewCsv(source: string, mapping: CsvMapping): Promise<ImportPreview> {
     await this.queue;
     const preview = { ...prepareImport(source, mapping, this.ledger), token: this.createId() };
+    applyPayeeRules(preview.accepted, this.ledger.rules);
     this.pendingImport = { preview, revision: this.revision };
     return structuredClone(preview);
   }
@@ -83,6 +85,15 @@ export class LedgerService {
         const imported = pending.preview.accepted.map((row) => ({ ...row, id: this.createId() }));
         candidate.transactions = imported.concat(candidate.transactions);
         return `Imported ${imported.length} transactions. Skipped ${pending.preview.duplicates} duplicates.`;
+      }
+      case "saveCategory": return saveCategory(candidate, command.name, command.id, this.createId);
+      case "deleteCategory": return deleteCategory(candidate, command.id);
+      case "mergeCategory": return mergeCategory(candidate, command.sourceId, command.targetId);
+      case "saveRule": return saveRule(candidate, command.contains, command.categoryId, command.id, this.createId);
+      case "deleteRule": return deleteRule(candidate, command.id);
+      case "applyRules": {
+        const count = applyPayeeRules(candidate.transactions, candidate.rules);
+        return `Applied rules to ${count} transaction${count === 1 ? "" : "s"}.`;
       }
       default:
         throw new Error("Unknown or unavailable command.");
