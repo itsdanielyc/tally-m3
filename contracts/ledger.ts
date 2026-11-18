@@ -56,6 +56,8 @@ export interface CsvTable { delimiter: string; headers: string[]; headerLine: nu
 export interface RejectedRow { line: number; reason: string }
 export interface ImportPreview {
   token: string;
+  /** Categories created only if this immutable receipt is confirmed. */
+  newCategories: Category[];
   accepted: TransactionDraft[];
   rejected: RejectedRow[];
   duplicates: number;

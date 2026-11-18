@@ -16,6 +16,7 @@ describe.each(["mock", "file"])("CSV contract: %s", (kind) => {
   afterEach(async () => { await removeTestDirectory(directory); });
   it("previews without writing, commits accepted rows together, and skips the same file afterwards", async () => {
     const preview = await backend.previewCsv(source, mapping);
+    expect(preview.newCategories).toEqual([]);
     expect(preview.accepted).toHaveLength(2);
     expect(preview.rejected).toHaveLength(1);
     expect((await backend.read()).ledger.transactions).toEqual([]);
