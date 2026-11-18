@@ -20,4 +20,7 @@ The fixed scope and ordering come from SLICES.md. Solo ownership for every slice
 - Ruling: all reversible choices and pre-authorized GitHub branch/PR/workflow operations proceed unattended — owner's explicit instruction — decisions are recorded here and in evidence.
 - Ruling: preserve the original skills and fixed inputs after scaffold generation — generator's broad rename also visits embedded templates — restore only its incidental changes to those tracked files.
 - Ruling: router inventory's git detection is a Windows path false negative — `git status` confirms this folder's clean main and existing origin — use direct git/gh evidence.
+- Ruling: browser harness binds 127.0.0.1:17241 and refuses server reuse — template port 1420 was occupied locally — dev URLs differ from template documentation.
+- Ruling: CI concurrency includes event type — delayed merged PR events cancelled main evidence — PR and main may briefly run concurrently.
+- Ruling: bootstrap workflow PRs merge before initial pixel baselines exist — GitHub dispatch needs workflows on the default branch — scaffold stays open until the subsequent baseline commit is fully green.
 <!-- keel:end -->
