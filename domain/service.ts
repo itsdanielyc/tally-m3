@@ -1,6 +1,7 @@
 import type { CsvMapping, ImportPreview, Ledger, LedgerCommand, LedgerSnapshot, LedgerStore } from "../contracts/ledger";
 import { prepareImport } from "./csv";
 import { applyPayeeRules, saveCategory, deleteCategory, mergeCategory, saveRule, deleteRule } from "./categories";
+import { setMonthlyBudget } from "./summary";
 import { assertCurrency, assertRecord, requiredText, validateLedger, validateTransaction } from "./validation";
 
 /** Serial command boundary shared by native disk persistence and the browser memory mock. */
@@ -95,6 +96,7 @@ export class LedgerService {
         const count = applyPayeeRules(candidate.transactions, candidate.rules);
         return `Applied rules to ${count} transaction${count === 1 ? "" : "s"}.`;
       }
+      case "setBudget": return setMonthlyBudget(candidate, command.month, command.categoryId, command.amount);
       default:
         throw new Error("Unknown or unavailable command.");
     }

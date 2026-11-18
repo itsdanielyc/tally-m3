@@ -112,3 +112,23 @@ test("native category rules apply to existing and imported uncategorised rows", 
   expect(snapshot.ledger.categories.find((category) => category.id === imported?.categoryId)?.name).toBe("Food");
   expect(consoleErrors).toEqual([]);
 });
+
+test("native monthly totals and budget equal the exact imported transactions", async () => {
+  await ledgerWindow.getByRole("button", { name: "Summary", exact: true }).click();
+  await ledgerWindow.getByLabel("Month", { exact: true }).fill("2026-11");
+  await ledgerWindow.getByLabel("Month", { exact: true }).press("Tab");
+  await expect(ledgerWindow.getByTestId("summary-income")).toHaveText("GBP 2000.00");
+  await expect(ledgerWindow.getByTestId("summary-spending")).toHaveText("GBP 15.00");
+  await expect(ledgerWindow.getByTestId("summary-balance")).toHaveText("GBP 1985.00");
+  await ledgerWindow.getByLabel("Budget for Food", { exact: true }).fill("20.00");
+  await ledgerWindow.getByRole("button", { name: "Save budget for Food" }).click();
+  await expect(ledgerWindow.getByRole("region", { name: "Category Food" }).getByTestId("budget-remaining")).toHaveText("GBP 5.00 left");
+  const saved = JSON.parse(await readFile(join(directory, "ledger.json"), "utf8"));
+  const food = saved.categories.find((category: { name: string }) => category.name === "Food");
+  expect(saved.budgets["2026-11"][food.id]).toBe(2000);
+  await ledgerWindow.screenshot({ path: `artifacts/e2e/summary-${process.platform}-${process.arch}.png` });
+  await ledgerWindow.getByRole("button", { name: "Next month" }).click();
+  await expect(ledgerWindow.getByTestId("summary-spending")).toHaveText("GBP 0.00");
+  await ledgerWindow.getByRole("button", { name: "Previous month" }).click();
+  expect(consoleErrors).toEqual([]);
+});

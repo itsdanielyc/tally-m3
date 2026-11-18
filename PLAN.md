@@ -13,6 +13,9 @@ The fixed scope and ordering come from SLICES.md. Solo ownership for every slice
 | 6 | Release readiness | 0.1.0 versions agree; changelog and unsigned notes; release gate proven to reject unproven commit; fresh CI and installer round trips green for candidate commit; ledger current; no tag/release | L0-L7 | solo | open |
 
 ## Rulings
+- Ruling: monthly income/spending remain gross sign totals; category net totals include every signed row and credits/refunds offset budget use — monthly totals must reconcile to the ledger to the cent — users wanting gross-only category budgets would need a later policy change.
+- Ruling: aggregates use BigInt while individual persisted amounts/budgets remain safe integer minor units — prevent overflow and cent rounding in large mixed totals — derived aggregate values are never serialized into the ledger.
+- Ruling: budgets are independent per category/month, unset differs from explicit zero, with no automatic carryover — fixed scope asks for monthly budgets — recurring templates are not built.
 - Ruling: category deletion removes its rules and budgets and leaves its transactions uncategorised; merge adds per-month budgets and reassigns every reference — prevent dangling IDs — deletion loses those settings until the slice 5 undo is available.
 - Ruling: Uncategorised is reserved, category names and duplicate rule needles compare without case using Unicode NFC, first-created matching rule wins — keep null state and rule priority unambiguous — rule reordering is outside the fixed scope.
 - Ruling: snapshot artifacts contain only the capturing OS's PNGs; the first selected runner owns shared text/geometry — full artifact sets carried stale other-OS PNGs that overwrote fresh captures — two integration tests and an ownership mutation guard the merge.

@@ -20,7 +20,8 @@ export function saveCategory(ledger: Ledger, nameValue: unknown, id: string | un
   return id === undefined ? "Category created." : "Category renamed.";
 }
 
-function requireCategory(ledger: Ledger, id: unknown): string {
+/** Validate an existing category reference shared by category and budget commands. */
+export function requireCategory(ledger: Ledger, id: unknown): string {
   const categoryId = requiredText(id, "Category ID");
   if (!ledger.categories.some((category) => category.id === categoryId)) throw new Error("Category not found.");
   return categoryId;

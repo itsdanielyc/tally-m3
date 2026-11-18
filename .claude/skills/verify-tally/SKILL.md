@@ -50,6 +50,11 @@ Read cold, mid-task. Every command below is real for this repository.
   controls while saving so an asynchronous refresh cannot discard a fast edit.
 - Snapshot artifacts are staged by `scripts/collect-snapshots.mts`: each runner owns
   only its own PNG suffix, while the first selected runner owns shared text/geometry.
+- Summary journeys choose a month, check exact gross income/spending and category net,
+  save a monthly budget and navigate previous/next across years. Month edits commit on
+  change/blur so typing a year keeps its focus. Aggregates use BigInt; ledger money remains
+  whole minor-unit integers. The native fixture has November income 200000, spending 1500,
+  Food budget 2000 and 500 left after the rule-assigned imports.
 
 - Real shell: `npm run test:e2e` launches `out/` through Playwright and
   checks the badge, transaction persistence and the console; add journeys

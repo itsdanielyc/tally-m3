@@ -5,7 +5,7 @@ function categoryOptions(categories: readonly Category[], selected?: string): st
   return categories.map((category) => `<option value="${escapeHtml(category.id)}" ${category.id === selected ? "selected" : ""}>${escapeHtml(category.name)}</option>`).join("");
 }
 
-/** Index counts/names once rather than rescanning transactions for each category. O(t+c log c+r). */
+/** Index counts/names once. O(t+c log c+r) time, O(c+r) auxiliary space. */
 export function renderCategories(snapshot: LedgerSnapshot): string {
   const { ledger } = snapshot;
   const categories = [...ledger.categories].sort((left, right) => left.name.localeCompare(right.name));
