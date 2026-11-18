@@ -71,9 +71,10 @@ jobs:
         with:
           pattern: snapshots-*
           path: incoming
+          merge-multiple: true
       - name: Merge the three capture sets
         run: |
-          for d in incoming/snapshots-*; do cp -R "$d"/. tests/ui/__snapshots__/; done
+          cp -R incoming/. tests/ui/__snapshots__/
           git status --short tests/ui/__snapshots__
       - name: Commit the baselines
         env:
