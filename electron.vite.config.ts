@@ -20,7 +20,7 @@ export default defineConfig({
   },
   renderer: {
     root: ".",
-    server: { port: 1420, strictPort: true },
+    server: { port: 17241, strictPort: true },
     build: {
       rolldownOptions: { input: resolve(import.meta.dirname, "index.html") },
     },
