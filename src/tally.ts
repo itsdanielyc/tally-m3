@@ -38,6 +38,8 @@ async function execute(command: LedgerCommand): Promise<boolean> {
 
 function openTransaction(id?: string): void {
   editingTransactionId = id;
+  element("transaction-error").hidden = true;
+  element("transaction-error").textContent = "";
   const transaction = snapshot.ledger.transactions.find((row) => row.id === id);
   const today = new Date();
   const todayISO = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;

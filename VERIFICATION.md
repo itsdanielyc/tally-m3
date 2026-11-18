@@ -16,6 +16,8 @@ is never rounded up to "tested"; anything not listed here is unverified.
 | 2026-11-18 17:15 UTC | L4/L5 local / slice 1 branch | Add/edit/delete, amount error and currency flow; ARIA/geometry; scaffold coverage retained | local windows x64 | npm run test:ui exit 0, 10 pass, 1 pending runner PNG skip; five new checks deliberately red with wrong stored amount, omitted validation, ignored currency, missing button/geometry target |
 | 2026-11-18 17:19 UTC | L6 local / slice 1 branch | Native IPC contract, malformed money, exact add/edit/restart/delete file journey; 30 serial repeats pass | local windows x64 | build exit 0; repeat-each 30 exit 0, 90/90 assertions, 78s; artifacts/e2e/stress-before.json. Each new journey deliberately red via schema 0, wrong cent, or no-op delete. Earlier 20-repeat run had one worker fast-fail: issue #9, not claimed fixed |
 
+| 2026-11-18 17:34 UTC | L0-L2, L4-L6 contract seam | Shared schema/preload declaration merged before activation; existing scaffold behavior remains green | windows-x64, macos-arm64, linux-x64 | [contract CI 44354680358](https://github.com/itsdanielyc/tally-m3/actions/runs/44354680358), 8/8 jobs green; [PR 7](https://github.com/itsdanielyc/tally-m3/pull/7), later merge changed PLAN/VERIFICATION only |
+
 ## Unverified
 
 - Slice 1 hosted full-level proof and transaction-screen PNGs are pending. Slices 2 through 6 are not implemented.

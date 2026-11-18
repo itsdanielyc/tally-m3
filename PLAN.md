@@ -13,6 +13,7 @@ The fixed scope and ordering come from SLICES.md. Solo ownership for every slice
 | 6 | Release readiness | 0.1.0 versions agree; changelog and unsigned notes; release gate proven to reject unproven commit; fresh CI and installer round trips green for candidate commit; ledger current; no tag/release | L0-L7 | solo | open |
 
 ## Rulings
+- Ruling: after a slice is locally green, implement its successor on an isolated branch while hosted verification queues — unattended hosted macOS scheduling exceeded execution time — merges and done statuses remain strictly ordered and require the full named Tier 1 proof for each slice; branch management costs more.
 - Ruling: one CI verification job per Tier 1 OS runs L0 through L6 in order — repeated setup and queued macOS jobs dominated wall time — all levels and platforms remain required; execution budgets stay unchanged.
 - Ruling: keep the scaffold UI/tests until the replacement transaction journeys pass on runners, then promote in a separate PR — preserves inherited coverage while replacing the demo — one temporary preview route exists only during slice 1.
 - Ruling: treat isolated Windows Playwright worker fast-fail as an L6 harness observation, issue #9 — 30 subsequent serial repeats passed 90/90 without changing assertions/timeouts — cause remains unverified; one environmental L6 retry is the existing Keel allowance.
